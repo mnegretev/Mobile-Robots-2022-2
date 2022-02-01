@@ -23,7 +23,7 @@ def main():
     global decoder, in_speech_bf, pub_recognized
     print("INITIALIZING SPEECH RECOGNITION WITH POCKETSPHINX AND JSGF GRAMMAR BY MARCOSOFT...")
     rospy.init_node("sp_rec")
-    pub_recognized = rospy.Publisher("/hri/sp_rec/recognized", String, queue_size=10)
+    pub_recognized = rospy.Publisher("/recognized", String, queue_size=10)
     rospack = rospkg.RosPack()
 
     in_speech_bf = False
@@ -63,7 +63,7 @@ def main():
     decoder.set_search(gram)
     decoder.start_utt()
     print("SpRec.->Decoder started successfully")
-    rospy.Subscriber("/hri/sphinx_audio", String, callback_sphinx_audio)
+    rospy.Subscriber("/sphinx_audio", String, callback_sphinx_audio)
     rospy.spin()
 
 if __name__ == "__main__":

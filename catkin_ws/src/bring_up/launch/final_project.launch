@@ -1,0 +1,37 @@
+<launch>
+  <include file="$(find bring_up)/launch/justina_hardware.launch">
+    <arg name="initial_x" value="7.62"/>
+    <arg name="initial_y" value="5.45"/>
+  </include>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find config_files)/rviz/final_project.rviz"/>
+  <node name="justina_gui" pkg="justina_gui" type="justina_gui_node" output="screen">
+    <param name="la_predefined" value="$(find config_files)/manipulation/la_predefined.yaml"/>
+    <param name="ra_predefined" value="$(find config_files)/manipulation/ra_predefined.yaml"/>
+    <param name="hd_predefined" value="$(find config_files)/manipulation/hd_predefined.yaml"/>
+  </node>
+  <include file="$(find bring_up)/launch/justina_controllers.launch"/>
+  <node name="map_server" pkg="map_server" type="map_server" output="screen" args="$(find config_files)/maps/appartment.yaml"/>
+  <node name="amcl" pkg="amcl" type="amcl" output="screen">
+    <param name="initial_pose_x" value="3.39"/>
+    <param name="initial_pose_y" value="5.56"/>
+    <param name="initial_pose_a" value="-1.57"/>
+  </node>
+  <node name="audio_sender" pkg="sprec_pocketsphinx" type="send_audio.py" output="screen"/>
+  <node name="sound_play" pkg="sound_play" type="soundplay_node.py" output="screen"/>
+
+  <node name="practice01" pkg="students" type="practice01.py" output="screen"/>
+  <node name="practice02" pkg="students" type="practice02.py" output="screen"/>
+  <node name="practice03" pkg="students" type="practice03.py" output="screen"/>
+  <node name="practice04" pkg="students" type="practice04.py" output="screen"/>
+  <node name="practice07" pkg="students" type="practice07.py" output="screen"/>
+  <node name="practice08" pkg="students" type="practice08.py" output="screen"/>
+  <!--TODO: Add the node of the your final project -->
+  <!--TODO: Change grammar and dictionary for the ones of your final project -->
+  <node name="speech_recog" pkg="sprec_pocketsphinx" type="asr.py" output="screen">
+    <param name="gram" value="$(find sprec_pocketsphinx)/vocab/voice_cmd.gram"/>
+    <param name="dict" value="$(find sprec_pocketsphinx)/vocab/voice_cmd.dic"/>
+    <param name="grammar" value="voice_cmd"/>
+    <param name="rule" value="move2"/>
+    <param name="lm" value=":default"/>
+  </node>
+</launch>
