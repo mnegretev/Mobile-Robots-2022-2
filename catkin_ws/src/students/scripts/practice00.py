@@ -30,6 +30,7 @@ def main():
     rospy.Subscriber("/scan", LaserScan, callback_scan)
     pub_cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
     loop = rospy.Rate(10)
+    #...
     
     global obstacle_detected
     obstacle_detected = False
