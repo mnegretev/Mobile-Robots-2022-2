@@ -21,7 +21,9 @@ def callback_scan(msg):
     # TODO:
     # Do something to detect if there is an obstacle in front of the robot.
     # Set the 'obstacle_detected' variable with True or False, accordingly.
-    #
+    obstacle_detected = msg.ranges[len(msg.ranges)//2] < 1.0   #division de enteros para encontrar el elemento a la mitad del arreglo
+    #posicion a la mitad del arreglo es 92
+    print(obstacle_detected)
     return
 
 def main():
@@ -30,7 +32,7 @@ def main():
     rospy.Subscriber("/scan", LaserScan, callback_scan)
     pub_cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
     loop = rospy.Rate(10)
-    #...
+    
     
     global obstacle_detected
     obstacle_detected = False
@@ -38,10 +40,13 @@ def main():
         #
         # TODO:
         # Declare a Twist message and assign the appropiate speeds:
+        msg = Twist()
+        msg.linear.x = 0.1 if not obstacle_detected else 0.0
         # Move forward if there is no obstacle in front of the robot, and stop otherwise.
         # Use the 'obstacle_detected' variable to check if there is an obstacle. 
         # Publish the Twist message using the already declared publisher 'pub_cmd_vel'.
         #
+        pub_cmd_vel.publish(msg)
         loop.sleep()
 
 
