@@ -37,10 +37,13 @@ def main():
         #
         # TODO:
         # Declare a Twist message and assign the appropiate speeds:
+        msg = Twist() #ESto contiene un mienbro linear y angular
+        msg.linear.x = 0.1 
         # Move forward if there is no obstacle in front of the robot, and stop otherwise.
         # Use the 'obstacle_detected' variable to check if there is an obstacle. 
         # Publish the Twist message using the already declared publisher 'pub_cmd_vel'.
         #
+        pub_cmd_vel.publish(msg) #Verificar lo de cómo hacer un publicador y suscriptor
         loop.sleep()
 
 
