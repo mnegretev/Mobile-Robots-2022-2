@@ -22,6 +22,7 @@ def callback_scan(msg):
     # Do something to detect if there is an obstacle in front of the robot.
     # Set the 'obstacle_detected' variable with True or False, accordingly.
     #
+    obstacle_detected = msg.ranges[len(msg.ranges)//2] <1.0
     return
 
 def main():
@@ -41,6 +42,9 @@ def main():
         # Use the 'obstacle_detected' variable to check if there is an obstacle. 
         # Publish the Twist message using the already declared publisher 'pub_cmd_vel'.
         #
+        msg = Twist()
+        msg.linear.x = 0.1
+        pub_cmd_vel.publish(msg)
         loop.sleep()
 
 
