@@ -37,7 +37,7 @@ def get_inflated_map(static_map, inflation_cells):
                 for u in range(i-inflation_cells,i+inflation_cells+1):
                     for v in range(j-inflation_cells,j+inflation_cells+1):
                         if ( u!=i and j!=v ):
-                            inflated[u,v] = 50 #Valor de ocupacion
+                            inflated[u,v] = 100 #Valor de ocupacion
 
     return inflated
 
@@ -66,7 +66,16 @@ def get_cost_map(static_map, cost_radius):
     #  [ 3 X 3 3 3 2]
     #  [ 3 3 3 X 3 2]]
     # Cost_radius indicate the number of cells around obstacles with costs greater than zero.
-    
+
+    # Recorrido del mapa 
+    # for i in range(0,height):
+    #     for j in range(0,width):
+    #         if (static_map[i,j] > 50):
+    #             # Mini recorrido alrededor del punto de ocupacion
+    #             for u in range(i-cost_radius,i+cost_radius+1):
+    #                 for v in range(j-cost_radius,j+cost_radius+1):
+    #                     costo = cost_radius - max(abs(u),abs(v))
+    #                     cost_map[i+u,j+v] = max(costo,cost_map[i+u,j+v])
     return cost_map
 
 def callback_inflated_map(req):
