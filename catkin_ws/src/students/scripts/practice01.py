@@ -27,7 +27,7 @@ def get_inflated_map(static_map, inflation_cells):
     # given by 'inflation_cells' (expressed in number of cells)
     # Map is given in 'static_map' as a bidimensional numpy array.
     # Consider as occupied cells all cells with an occupation value greater than 50
-    
+    print("radio de inflacion",inflation_cells)
 
     for i in range(height):
         for j in range(width):
