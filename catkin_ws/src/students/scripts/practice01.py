@@ -47,9 +47,9 @@ def get_cost_map(static_map, cost_radius):
 			for x in range(i-cost_radius,i+cost_radius,1):
 				for y in range(j-cost_radius,j+cost_radius,1):
 					# calcula el costo de 0-9
-					cost=cost_radius-max(abs(x-i),abs(y-j))
+					costo=cost_radius-max(abs(x-i),abs(y-j))
 					#se usa el costo mas alto entre el anterior y el actual
-					cost_map[x,y]=max(cost,cost_map[x,y]
+					cost_map[x,y]=max(costo,cost_map[x,y]
     return cost_map
 
 def callback_inflated_map(req):
