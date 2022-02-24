@@ -15,28 +15,42 @@ from nav_msgs.srv import GetMap
 from nav_msgs.srv import GetMapResponse
 from nav_msgs.srv import GetMapRequest
 
-NAME = "FULL_NAME"
+NAME = "Liliana Gonzalez Pastor"
 
 def get_inflated_map(static_map, inflation_cells):
     print("Inflating map by " + str(inflation_cells) + " cells")
     inflated = numpy.copy(static_map)
     [height, width] = static_map.shape
-    #
-    # TODO:
-    # Write the code necessary to inflate the obstacles in the map a radius
-    # given by 'inflation_cells' (expressed in number of cells)
-    # Map is given in 'static_map' as a bidimensional numpy array.
-    # Consider as occupied cells all cells with an occupation value greater than 50
-    #
-    return inflated
 
+
+    ri= inflation_cells
+    for i in range(0,height,1):
+	for j in range(0,width,1):
+	   if inflated[i,j]>50:
+		for k1 in range(-ri,ri,1):
+		  for k2 in range(-ri,ri,1):
+		    inflated[i+k1,j+k2]=50
+    return inflated
+   
+  
 def get_cost_map(static_map, cost_radius):
     if cost_radius > 20:
         cost_radius = 20
     print "Calculating cost map with " +str(cost_radius) + " cells"
     cost_map = numpy.copy(static_map)
     [height, width] = static_map.shape
-    #
+
+	
+    for i in range(0,height,1):
+	for j in range(0,width,1):
+		if static_map[i,j]>49:
+		   for a in range(i-cost_radius, i+cost_radius,1):
+			for b in range(j-cost_radius, j+cost_radius,1):
+			     cost=cost_radius-max(abs(a-i),abs(b-j))
+			     cost_map[a,b]=max(cost,cost_map[a,b])
+    return cost_map
+
+#
     # TODO:
     # Write the code necessary to calculate a cost map for the given map.
     # To calculate cost, consider as example the following map:    
