@@ -15,19 +15,21 @@ from nav_msgs.srv import GetMap
 from nav_msgs.srv import GetMapResponse
 from nav_msgs.srv import GetMapRequest
 
-NAME = "FULL_NAME"
+NAME = "Carrillo Salazar Jose Armando"
 
 def get_inflated_map(static_map, inflation_cells):
     print("Inflating map by " + str(inflation_cells) + " cells")
     inflated = numpy.copy(static_map)
     [height, width] = static_map.shape
-    #
-    # TODO:
-    # Write the code necessary to inflate the obstacles in the map a radius
-    # given by 'inflation_cells' (expressed in number of cells)
-    # Map is given in 'static_map' as a bidimensional numpy array.
-    # Consider as occupied cells all cells with an occupation value greater than 50
-    #
+    #variables
+    ri=inflation_cells		# ri es el radio de inflación
+    for i in range(0,height,1): # Se recorrer la matriz
+	for j in range(0,width,1):
+		if inflated[i,j]>50: #si el valor dentro de la matriz es mayor a 50 se considera lugar ocupado
+			for k1 in range(-ri,ri,1): #Se recorre alredor de ese lugar e inflar el mapa	
+				for k2 in range(-ri,ri,1):
+					c=ri-max(abs(k1),abs(k2))
+					inflated[i+k1,j+k2]=50 #con un valor de 50 se ve en gris la parte afectada
     return inflated
 
 def get_cost_map(static_map, cost_radius):
@@ -36,26 +38,14 @@ def get_cost_map(static_map, cost_radius):
     print "Calculating cost map with " +str(cost_radius) + " cells"
     cost_map = numpy.copy(static_map)
     [height, width] = static_map.shape
-    #
-    # TODO:
-    # Write the code necessary to calculate a cost map for the given map.
-    # To calculate cost, consider as example the following map:    
-    # [[ 0 0 0 0 0 0]
-    #  [ 0 X 0 0 0 0]
-    #  [ 0 X X 0 0 0]
-    #  [ 0 X X 0 0 0]
-    #  [ 0 X 0 0 0 0]
-    #  [ 0 0 0 X 0 0]]
-    # Where occupied cells 'X' have a value of 100 and free cells have a value of 0.
-    # Cost is an integer indicating how near cells and obstacles are:
-    # [[ 3 3 3 2 2 1]
-    #  [ 3 X 3 3 2 1]
-    #  [ 3 X X 3 2 1]
-    #  [ 3 X X 3 2 2]
-    #  [ 3 X 3 3 3 2]
-    #  [ 3 3 3 X 3 2]]
-    # Cost_radius indicate the number of cells around obstacles with costs greater than zero.
     
+    for i in range(0,height,1): # Se recorre la matriz
+	for j in range(0,width,1):
+		if static_map[i,j]>49: #si el valor es mayor a 49 se asegura que pertenece al mapa inflado	
+			for x in range(i-cost_radius,i+cost_radius,1): #Se recorre alredor de celda ocupada o inflada
+				for y in range(j-cost_radius,j+cost_radius,1):
+					cost=cost_radius-max(abs(x-i),abs(y-j)) # Se calcula el costo de 0 a 9
+					cost_map[x,y]=max(cost,cost_map[x,y] #Usamos el costo mas alto entre  anterior y  actual
     return cost_map
 
 def callback_inflated_map(req):
