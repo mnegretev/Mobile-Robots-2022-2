@@ -10,13 +10,14 @@
 
 import rospy
 import numpy
+import sys
 from nav_msgs.msg import OccupancyGrid
 from nav_msgs.srv import GetMap
 from nav_msgs.srv import GetMapResponse
 from nav_msgs.srv import GetMapRequest
 
-NAME = "FULL_NAME"
-
+NAME = "Granados Vargas Nestor Yahir"
+static_map = None
 def get_inflated_map(static_map, inflation_cells):
     print("Inflating map by " + str(inflation_cells) + " cells")
     inflated = numpy.copy(static_map)
@@ -28,6 +29,12 @@ def get_inflated_map(static_map, inflation_cells):
     # Map is given in 'static_map' as a bidimensional numpy array.
     # Consider as occupied cells all cells with an occupation value greater than 50
     #
+    for i in range(height ): #Va a rrecorrer el No de renglones
+         for j in range(width): #Va a  recorrer todas las columnas de esos renglones
+             if static_map[i,j]>0: #Si la celda tiene un nivel de ocupacion mayor a cero procedera a inflar desde la celda mas o  menos el No de celdas a inflar
+                 for k1 in range(i-inflation_cells, i+inflation_cells+1):  # inflara desde i menos los renglones a inflar y desde i  mas los renglones a inflar 
+                     for k2 in range(j-inflation_cells, j+inflation_cells+1): #inflara desde j menos las columnas a inflar y desde j  mas las columnas a inflar
+			inflated[k1,k2] = static_map[i,j]
     return inflated
 
 def get_cost_map(static_map, cost_radius):
@@ -55,7 +62,13 @@ def get_cost_map(static_map, cost_radius):
     #  [ 3 X 3 3 3 2]
     #  [ 3 3 3 X 3 2]]
     # Cost_radius indicate the number of cells around obstacles with costs greater than zero.
-    
+    for i in range(height ): #Va a rrecorrer el No de renglones
+         for j in range(width): #Va a  recorrer todas las columnas de esos renglones
+             if static_map[i,j]>0: #Si la celda tiene un nivel de ocupacion mayor a cero procedera a asignar a el valor de costo
+                 for k1 in range(-cost_radius,cost_radius+1):  # inflara desde  menos algo hasta mas algo 
+                     for k2 in range(-cost_radius, cost_radius+1): #inflara desde menos algo hasta mas algo 
+                         cost = cost_radius- max(abs(k1),abs(k2)) +1  # el costo = radio de costo que definimos - el valor absoluto de la  posicion de k1 y k2
+                         cost_map[i+k1, j+k2]= max(cost, cost_map[i+k1, j+k2])   
     return cost_map
 
 def callback_inflated_map(req):
