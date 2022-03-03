@@ -18,7 +18,7 @@ from nav_msgs.msg import Path
 from nav_msgs.srv import *
 from collections import deque
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "Moctezuma Contreras"
 
 msg_path = Path()
 
@@ -31,7 +31,61 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
     #
-    path = []
+    ns = [start_r,start_c]
+    ng = [goal_r,goal_c]
+    dimensiones = grid_map.shape
+    infinito = float('inf')
+    fn = np.ones(dimensiones)*infinito
+    gn = np.ones(dimensiones)*infinito
+    pn_row = np.zeros(dimension) #pn_row y pn_col para guardar coordenas de nodo previo
+    pn_col = np.zeros(dimension) #
+    OL = []
+    CL = []
+    OL.insert(0,ns)
+    fn[ns[0],ns[1]] = 0
+    gn[ns[0],ns[1]] = 0
+    nc=ns #Nodo actual
+    OLfn = [] #Lista auxiliar que contendra los valores fn de los elementos de OL
+    OLgn = [] #Lista auxiliar que contendra los valores gn de los elementos de OL
+    while OL and nc != ng:    
+        for i in range(len(OL)):
+            auxind = OL[i] #auxind contiene el nodo iesimo de OL 
+            OLfn.append(fn[auxind[0],auxind[1]])  
+            OLgn.append(gn[auxind[0],auxind[1]])
+        indmin = np.argmin(OLfn) #indice del valor minimo fn de los elementos de OL
+        #print('Indice del Minimo de OL es: {0}'.format(indmin))
+        #print('Ol es: \n {0}'.format(OL))
+        nc = OL.pop(indmin) #El nuevo nodo sera el del valor minimo y se saca de OL
+        valormin=OLfn.pop(indmin) #Se saca el valor fn del nuevo nodo
+        CL.append(nc) #Se agregar nc a la lista cerrada
+        na_aux = [[-1,0],[1,0],[0,-1],[0,1]]#Nodos vecinos de nc conectividad 4
+        for i in range(len(na_aux)):
+            auxind_na = na_aux[i] #auxind_na contiene el nodo vecino iesimo
+            na_row = nc[0]+auxind_na[0]
+            na_col = nc[1]+auxind_na[1]
+            na = [na_row,na_col]
+            g = gn[nc[0],nc[1]]+1 #Mas el costo
+            h = abs(na_row-ng[0])+abs(na_col-ng[1])
+            f= g + h
+#--------------------
+        #--
+        if g < gn[na_row,na_col] :
+            gn[na_row,na_col]= g
+            fn[na_row,na_col]= f
+            pn_row[na_row,na_col] = nc[0]
+            pn_col[na_row,na_col] = nc[1]
+        if (na not in OL) and (na not in CL):
+            OL.append(na)
+#---------------------------------            
+    if nc != ng:
+        print('-----------No existe una solucion-----------')
+    else:
+        path = []
+        while nc != ns:
+            path.insert(0,nc)
+            nc = [pn_row[nc[0],nc[1]],pn_col[nc[0],nc[1]]]
+        path.insert(0,nc)
+        
     return path
 
 def get_maps():
