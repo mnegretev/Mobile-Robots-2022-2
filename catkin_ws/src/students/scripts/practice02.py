@@ -18,12 +18,59 @@ from nav_msgs.msg import Path
 from nav_msgs.srv import *
 from collections import deque
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "GONZALEZ PASTOR"
 
 msg_path = Path()
 
 def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
-    #
+    costo= numpy.copy(cost_map)
+    ns= [start_r, start_c]
+    ng=[goal_r, goal_c]
+    OL= [Path(ns)]
+
+    na= ns
+    fn= 0
+    gn= 0
+    cont= 0
+
+    while OL != None and OL[0] != ng:
+	n= OL.pop(min(OL[:,g]))
+	fna,gna=n
+	CL= OL[0]
+	OL.pop(0)
+
+	for i in {-1,2,-1,2}:
+	    if cont<2:
+		n=n+[i,0]
+		cont +1
+	    else:
+		if==-1:
+		   n=n+[-1,0]
+	        n=n+[0,i]
+		g=gn+c(na)+distance(n,na)
+
+		nax,nay=na
+		ngx,ngy=ng
+		h=(ngx-nax)+(ngy-nay)
+		f=g+h
+
+		if g<gna:
+		    gna=g
+		    fna=f
+		    pna=n
+        if n !=ng:
+	     return error
+   msg_path=[]
+  
+   while pna != None:
+      msg_path=n[0]
+   return msg_path
+
+def distance(n,na)
+   x1,y1=n
+   x2,y2=na
+   return math.sqrt((x1-x2)*2+(y1+y2)*2)	    
+   #
     # TODO:
     # Write the A* algorithm to find a path in an occupancy grid map given the start cell
     # [start_r, start_c], the goal cell [goal_r, goal_c] and the map 'grid_map'.
