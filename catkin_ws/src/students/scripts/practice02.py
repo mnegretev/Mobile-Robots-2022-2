@@ -40,7 +40,7 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     f=[]
     p=[];
 
-    #Inicializamos todo en infinito, en este caso será 100
+    # Inicializamos todo en infinito, en este caso será 100
     for i in range(0,height):
 	g.append([])
 	f.append([])
