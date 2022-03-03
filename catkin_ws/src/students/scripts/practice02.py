@@ -46,43 +46,51 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 	f.append([])
 	p.append([])
 	for j in range(0,width):
-		g[i].append(100)
-		f[i].append(100)
+		g[i].append(10000)
+		f[i].append(10000)
 		p[i].append([0,0])
 
     ns=[start_r,start_c]
     ng=[goal_r,goal_c]
     n=ns;
     OL.append(ns)
+    
     f[start_r][start_c]=0
     g[start_r][start_c]=0
     while OL and n != ng:
+	
 	faux=f[OL[0][0]][OL[0][1]]
 	tm=OL[0][0]
 	pm=OL[0][1]
 	for i in OL:
 		if f[i[0]][i[1]]<faux:
-			faux=f[i[0],i[1]]
+			faux=f[i[0]][i[1]]
 	 		tm=i[0]
 			pm=i[1]
 	n=[tm,pm]
+        
 	CL.append(OL.pop(OL.index(n)))
-	for i in range(n[0]-1,n[0]+1):
-		for j in range(n[1]-1,n[1]+1):
-			if i==n[0] or j==n[1]:#Se ignoran las esquinas
-				if cost_map[i,j] < 50: #Se ignoran puntos ocupados
-					if i >= 0 and j>=0: #Se ignoran puntos fuera del mapa
-						na=[i,j]
+	for i in [[n[0]-1,n[1]],[n[0]+1,n[1]],[n[0],n[1]+1],[n[0],n[1]-1]]:
+		if cost_map[i[0]][i[1]] < 50: #Se ignoran puntos ocupados
+				if i[0] >= 0 or i[1] >=0 : #Se ignoran puntos fuera del mapa
+					if i != n:
+						na=i
+						
 						gr=g[n[0]][n[1]]+cost_map[na[0]][na[1]]+1
 						hr=abs(ns[0]-na[0])+abs(ns[1]-na[1])
 						fr=hr+gr
+						
 						if gr < g[na[0]][na[1]]:
-							
+								
 							g[na[0]][na[1]]=gr
 							f[na[0]][na[1]]=fr
 							p[na[0]][na[1]]=n
-						if OL.count(na) != 0 and CL.count(na)!=0:
-							OL.append(na)		
+							
+						if OL.count(na) == 0 and CL.count(na)==0:
+							OL.append(na)	
+							
+					
+			
     
     if n != ng:
 	return -1
@@ -93,6 +101,10 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 	n=p[n[0],n[1]]
     
     print(path)
+    print(path[0])
+    print(type(path))
+    print(type(path[0]))
+    
     return path
 def get_maps():
     print("Getting inflated and cost maps...")
