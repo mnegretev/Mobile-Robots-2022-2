@@ -31,6 +31,14 @@ def smooth_path(Q, alpha, beta):
     # The smoothed path must have the same shape.
     # Return the smoothed path.
     #
+    
+    # Escriba el código para suavizar la ruta Q, usando el algoritmo de descenso de gradiente,
+    # y devuelve una nueva ruta suavizada P.
+    # La ruta se compone de un conjunto de puntos [x,y] de la siguiente manera:
+    # [[x0,y0], [x1,y1], ..., [xn,ym]].
+    # El camino suavizado debe tener la misma forma.
+    # Devuelve el camino suavizado. 
+    
     P = numpy.copy(Q)
     tol     = 0.00001                   
     nabla   = numpy.full(Q.shape, float("inf"))
