@@ -50,26 +50,24 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 
     #Definicion de lista abierta y lista cerrada
     openList = []
+    f_values = []
     closedList = []
 
     #Valores iniciales
     valores_g[start_r,start_c] = 0
     valores_f[start_r,start_c] = 0
     openList.append(nodoInicial)
+    f_values.append(0)
 
     #Se inicializa
     nodoActual = nodoInicial
 
     while len(openList)>0 and nodoActual != nodoMeta:
-        #Se elige el nodo con menor valor de F
-        f_values = []
         #Se busca todos los valores de F de la lista abierta
-        for i in range(0,len(openList)):
-            [x,y] = openList[i]
-            f_values.append(valores_f[x,y])
         index_min_f = f_values.index(min(f_values)) 
         #Se quita el de menor valore de F
         nodoActual = openList.pop(index_min_f)
+        f_values.pop(index_min_f)
         #Se inserta el nodo con menor valor
         closedList.append(nodoActual)
 
@@ -93,6 +91,7 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
             #Se agrega los nodos adyacentes posibles a la lista abierta
             if (([x,y] not in openList) and ([x,y] not in closedList)):
                 openList.append([x,y])
+                f_values.append(valores_f[x,y])
 
     #Comprobando la existencia de la ruta
     if nodoActual != nodoMeta:
