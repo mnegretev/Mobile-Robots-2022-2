@@ -18,11 +18,12 @@ from nav_msgs.msg import Path
 from nav_msgs.srv import *
 from collections import deque
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "Granados Vargas Nestor Yahir"
 
 msg_path = Path()
 
 def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
+    open_list   =[]
     #
     # TODO:
     # Write the A* algorithm to find a path in an occupancy grid map given the start cell
@@ -31,7 +32,47 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
     #
+    in_closed_l =numpy.full( grid_map.shape, False)
+    in_open_l   =numpy.full( grid_map.shape, False)
+    g_values    =numpy.full( grid_map.shape, float("inf"))
+    f_values    =numpy.full( grid_map.shape, float("inf"))
+    previous    =numpy.full((grid_map.shape[0], grid_map.shape[0], 2), -1)
+    adjacents   =[[1,0],[0,1],[-1,0],[0,-1], [1,1], [-1,1], [-1,-1],[1,-1]]
+    heapq.heappush(open_list, (0, [start_r, start_c]))
+    in_open_l[start_r, start_c] = True
+    g_values[start_r, start_c] = 0
+    f_values[start_r, start_c] = 0
+    [row, col] = [start_r, start_c]
+
+    while len(open_list) > 0 and [row, col] != [goal_r, goal_c]: # si la lista es mayor a cero y las columnas y renglones son diferentes de las metas seguimos
+        [row, col] = heapq.heappop(open_list)[1] #implementacion del algoritmo de cola de almacenamiento dinamico para la lista abirta
+        in_closed_l[row,col] = True
+        adjacents_nodes = [[row+i, col+j] for [i,j] in adjacents]
+        for [r,c] in adjacents_nodes:
+            if grid_map[r,c] != 0 or in_closed_l[r,c]:
+                continue
+            g = g_values[row, col] + math.sqrt((row-r)**2 + (col-c)**2) + cost_map[r,c]# con esto calculamos el valor de g para el nuevo nodo
+            h = math.sqrt((goal_r - r)**2 + (goal_c - c)**2)#Para calcular la heuristica
+            f = g + h# nuevo valor f
+
+            if g < g_values[r,c]:
+                g_values[r,c] = g
+                f_values[r,c] = f
+                previous[r,c] = [row,col]
+
+            if not in_open_l[r,c]:
+                heapq.heappush(open_list, (f_values[r,c], [r,c]))
+                in_open_l[r,c] = True
+                
+    if [row,col] != [goal_r, goal_c]:
+        print("Cannot calculate path. :'(")
+        return []
     path = []
+    while [previus[row,col][0], previus[row,col][1]] != [-1,-1]:
+        path.insert(0, [row,col])
+        [row,col] = previus[row,col]
+    print("Path calculated succesfully :D ")
+    return path
     return path
 
 def get_maps():
