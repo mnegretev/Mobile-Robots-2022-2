@@ -74,7 +74,7 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     while[prev[row, col][0], prev[row, col][1]] != [-1, -1]:
         path.insert(0, [row, col])
         [row, col] = prev[row, col]
-        print("Ruta calculada")
+        print("Ruta calculada exitosamente")
     return path
 #------------------------------------------------------------------------
 def get_maps():
