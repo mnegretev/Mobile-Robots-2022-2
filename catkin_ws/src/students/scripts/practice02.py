@@ -84,7 +84,7 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
         #rospy.loginfo("dentro de while")
 
         # Verifica que el punto deseado este dentro de los limites del mapa
-        if goal_r > 512 or goal_c > 892:
+        if goal_r > 512 or goal_c > 892 or  goal_r < 0 or  goal_c < 0:
             print("Objetivo fuera de mapa")
             break
 
