@@ -31,16 +31,16 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
     #
-
-    
+	 	   
     [height, width] = grid_map.shape
+    path = []
     OL=[]
     CL=	[]
     g=[]
     f=[]
     p=[];
 
-    # Inicializamos todo en infinito, en este caso será 100
+    # Inicializamos todo en infinito, en este caso sera 100
     for i in range(0,height):
 	g.append([])
 	f.append([])
@@ -49,36 +49,37 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 		g[i].append(100)
 		f[i].append(100)
 		p[i].append([0,0])
-     ns=[start_r, start_c]
-     ng=[goal_r, goal_c]
-     n=ns;
-     CL.append(ns)
-     f[start_r][start_c]=0
-     g[start_r][start_c]=0
-     while OL != NULL and n != ng:
-	 faux=f(OL[0][0],OL[0][1]]
-	 tm=OL[0][0]
-	 pm=OL[0][1]
-	 for i in OL:
-		if f[i[0],i[1]]<faux:
+
+    ns=[start_r,start_c]
+    ng=[goal_r,goal_c]
+    n=ns;
+    OL.append(ns)
+    f[start_r][start_c]=0
+    g[start_r][start_c]=0
+    while OL and n != ng:
+	faux=f[OL[0][0]][OL[0][1]]
+	tm=OL[0][0]
+	pm=OL[0][1]
+	for i in OL:
+		if f[i[0]][i[1]]<faux:
 			faux=f[i[0],i[1]]
 	 		tm=i[0]
 			pm=i[1]
-	 n=[tm,pm]
-	 CL.append(OL.pop(OL.index(n)))
-	 for i in range(n[0]-1,n[0]+1):
+	n=[tm,pm]
+	CL.append(OL.pop(OL.index(n)))
+	for i in range(n[0]-1,n[0]+1):
 		for j in range(n[1]-1,n[1]+1):
 			if i==n[0] or j==n[1]:#Se ignoran las esquinas
 				if cost_map[i,j] < 50: #Se ignoran puntos ocupados
-					if i >= 0 and j>=0 #Se ignoran puntos fuera del mapa
+					if i >= 0 and j>=0: #Se ignoran puntos fuera del mapa
 						na=[i,j]
-						g=g[n[0]][n[1]]+cost_map[na[0]][na[1]]+1
-						h=abs(ns[0]-na[0])+abs(ns[1]-na[1])
-						f=h+g
-						if g < g[na[0]][na[1]]:
+						gr=g[n[0]][n[1]]+cost_map[na[0]][na[1]]+1
+						hr=abs(ns[0]-na[0])+abs(ns[1]-na[1])
+						fr=hr+gr
+						if gr < g[na[0]][na[1]]:
 							
-							g[na[0]][na[1]]=g
-							f[na[0]][na[1]]=f
+							g[na[0]][na[1]]=gr
+							f[na[0]][na[1]]=fr
 							p[na[0]][na[1]]=n
 						if OL.count(na) != 0 and CL.count(na)!=0:
 							OL.append(na)		
@@ -86,11 +87,12 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     if n != ng:
 	return -1
     
-    path = []
-    while p[n[0]][n[1]] != [0,0]
+   
+    while p[n[0]][n[1]] != [0,0]:
 	path.insert(0,n)
 	n=p[n[0],n[1]]
-
+    
+    print(path)
     return path
 def get_maps():
     print("Getting inflated and cost maps...")
@@ -123,6 +125,7 @@ def callback_a_star(req):
     [zx, zy] = [s_map.info.origin.position.x, s_map.info.origin.position.y]
     print("Calculating path by A* from " + str([sx, sy])+" to "+str([gx, gy]))
     path = a_star(int((sy-zy)/res), int((sx-zx)/res), int((gy-zy)/res), int((gx-zx)/res), inflated_map, cost_map)
+    print(path)
     msg_path.poses = []
     for [r,c] in path:
         msg_path.poses.append(PoseStamped(pose=Pose(position=Point(x=(c*res + zx), y=(r*res + zy)))))
