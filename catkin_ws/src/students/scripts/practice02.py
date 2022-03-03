@@ -42,7 +42,6 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     previous = numpy.full((grid_map.shape[0], grid_map.shape[0],2), -1)
     adjacents = [[1,0], [0,1], [-1,0], [0,-1], [1,1], [-1,1], [-1,-1], [1,-1]]
 
-    #Se inicializan g = f = 0
     heapq.heappush(open_list, (0,[start_r, start_c]))
     in_open_list[start_r, start_c] = True
     g_values[start_r, start_c] = 0
