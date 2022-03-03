@@ -125,25 +125,25 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
         # Superior
         if grid_map[r_actual-1, c_actual] <= 50:     # verifica si la celda no esta ocupada
              # suma la distancia al vecino con costo en ese nodo
-            cost = dist + grid_map[r_actual-1, c_actual]   
+            cost = dist + cost_map[r_actual-1, c_actual]   
             adjacents.append([[r_actual-1, c_actual], cost])  # agrega elemento a lista vecinos
             #print("registra nodo arriba, costo = ", cost)
 
         # Izqierda
         if grid_map[r_actual, c_actual-1] <= 50:
-            cost = dist + grid_map[r_actual, c_actual-1]
+            cost = dist + cost_map[r_actual, c_actual-1]
             adjacents.append([[r_actual, c_actual-1], cost])
             #print("registra nodo izq, costo = ", cost)
 
         # Derecha
         if grid_map[r_actual, c_actual+1] <= 50:
-            cost = dist + grid_map[r_actual, c_actual+1]
+            cost = dist + cost_map[r_actual, c_actual+1]
             adjacents.append([[r_actual, c_actual+1], cost])
             #print("registra nodo der, costo = ", cost)
         
         # Inferior
         if grid_map[r_actual+1, c_actual] <= 50:
-            cost = dist + grid_map[r_actual+1, c_actual]
+            cost = dist + cost_map[r_actual+1, c_actual]
             adjacents.append([[r_actual+1, c_actual], cost])
             #print("registra nodo abajo, costo = ", cost)
         
