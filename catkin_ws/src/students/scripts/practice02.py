@@ -18,7 +18,7 @@ from nav_msgs.msg import Path
 from nav_msgs.srv import *
 from collections import deque
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "carrillo_salazar"
 
 msg_path = Path()
 
@@ -31,7 +31,48 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
     #
+    lista_abierta = []
+    lista_cerrada = []
+    cerrada_flag = numpy.full (grid_map.shape, False)
+    abierta_flag = numpy.full (grid_map.shape, False)
+    valor_g = numpy.full(grid_map.shape, float("inf"))
+    valor_f = numpy.full(grid_map.shape, float("inf"))
+    adyacente = [[1,0],[0,1],[-1,0],[0,-1],[1,1],[-1,1], [-1,-1], [1,-1]]
+    valor_previo = numpy.full((grid_map.shape[0], grid_map.shape[0],2), -1)
+    heapq.heappush(lista_abierta, (0,[start_r, start_c]))
+    
+    abierta_flag[start_r, start_c]= True
+    valor_g[start_r,start_c] = 0
+    valor_f[start_r,start_c] = 0
+    
+    [row,col] = [start_r, start_c]
+    
+    while len(lista_abierta)>0 and [row,col] != [goal_r, goal_c]:
+    	[row,col] = heapq.heappop(lista_abierta)[1]
+    	cerrada_flag[row,col] = True
+	nodos_adyacentes = [[row+i, col+j] for [i,j] in adyacente]
+	for [r,c] in nodos_adyacentes:
+	    if grid_map[r,c] != 0 or cerrada_flag[r,c]:
+            	continue
+	    g=  valor_g [row,col] +math.sqrt((row-r)**2+(col-c)**2)+ cost_map[r,c]
+	    h = math.sqrt((goal_r-r)**2+(goal_c-c)**2)
+	    f = g+h
+	    if g < valor_g[r,c]:
+		valor_g[r,c] = g 
+		valor_f[r,c] = f
+		valor_previo[r,c] = [row,col]
+	    if abierta_flag[r,c] != True:
+		heapq.heappush(lista_abierta, (valor_f[r,c],[r,c]))
+		abierta_flag[r,c] = True
+    
+    if [row,col] != [goal_r,goal_c]:
+	print("ERROR")
     path = []
+    
+    print("Todo bien")
+    while [[row,col][0],[row,col][1]]!=[-1,-1]:
+	path.insert(0,[row,col])
+	[row,col] = valor_previo[row,col]
     return path
 
 def get_maps():
