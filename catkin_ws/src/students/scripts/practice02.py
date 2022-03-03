@@ -9,7 +9,7 @@
 # MODIFY ONLY THE SECTIONS MARKED WITH THE 'TODO' COMMENT
 #
 
-import numpy
+import numpy 
 import heapq
 import rospy
 import math
@@ -18,7 +18,7 @@ from nav_msgs.msg import Path
 from nav_msgs.srv import *
 from collections import deque
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "SANJUAN ALDAPE"
 
 msg_path = Path()
 
@@ -30,8 +30,54 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     # Return a set of points of the form [[start_r, start_c], [r1,c1], [r2,c2], ..., [goal_r, goal_c]]
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
-    #
+    
+    #Se crean las listas para almacenar los nodos
+    open_list = []
+    in_closed_list = numpy.full(grid_map.shape, False)
+    in_open_list = numpy.full(grid_map.shape, False)
+    #Se crean los arreglos g y f del tamano de grid_map, se llena con infinito
+    g_values = numpy.full(grid_map.shape, float("inf"))
+    f_values = numpy.full(grid_map.shape, float("inf"))
+    #Se crea arreglo de 3 dimensiones y se llena con -1
+    previous = numpy.full((grid_map.shape[0], grid_map.shape[0],2), -1)
+    adjacents = [[1,0], [0,1], [-1,0], [0,-1], [1,1], [-1,1], [-1,-1], [1,-1]]
+
+    #Se inicializan g = f = 0
+    heapq.heappush(open_list, (0,[start_r, start_c]))
+    in_open_list[start_r, start_c] = True
+    g_values[start_r, start_c] = 0
+    f_values[start_r, start_c] = 0
+    [row, col] = [start_r, start_c]
+
+    # Revisa si la lista abierta esta vacia y si ya esta en el nodo objetivo.
+    while len(open_list) > 0 and [row, col] != [goal_r, goal_c]:
+        [row, col] = heapq.heappop(open_list)[1] #Ingresa la celda actual a la lista abierta
+        in_closed_list[row,col] = True
+        adjacents_nodes = [[row+i, col+j] for [i,j] in adjacents]
+        for [r,c] in adjacents_nodes:  #Recorre las celdas adyacentes
+            if grid_map[r,c] != 0 or in_closed_list[r,c]:
+                continue
+            g = g_values[row, col] + math.sqrt((row-r)**2 + (col-c)**2) + cost_map[r,c]
+            h = math.sqrt((goal_r - r)**2 + (goal_c - c)**2)
+            f = g + h
+
+            if g < g_values[r,c]:
+                g_values[r,c] = g
+                f_values[r,c] = f
+                previous[r,c] = [row, col]
+            if not in_open_list[r,c]:
+                heapq.heappush(open_list, (f_values[r,c], [r,c]))
+                in_open_list[r,c] = True
+
+    if [row,col] != [goal_r, goal_c]:
+        print("Cant calculate path.")
+        return[]
+    print("Path calculated succesfully.")
+
     path = []
+    while [previous[row, col][0], previous[row,col][1]] != [-1, -1]:
+        path.insert(0,[row,col])
+        [row,col] = previous[row,col]
     return path
 
 def get_maps():
