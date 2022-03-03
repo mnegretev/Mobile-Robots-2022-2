@@ -18,10 +18,9 @@ from nav_msgs.msg import Path
 from nav_msgs.srv import *
 from collections import deque
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "RUIZ_VILLALBA"
 
 msg_path = Path()
-
 def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     #
     # TODO:
@@ -31,9 +30,53 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
     #
-    path = []
-    return path
 
+    op_list = []
+    in_cl_l = numpy.full(grid_map.shape, False)
+    in_op_l = numpy.full(grid_map.shape, False)
+    #Valores iniciados en infinito
+    g_val = numpy.full(grid_map.shape, float("inf"))
+    f_val = numpy.full(grid_map.shape, float("inf"))
+    prev = numpy.full((grid_map.shape[0], grid_map.shape[0],2),-1)
+
+    adj = [[1,0],[0,1],[-1,0],[0,-1], [1,1], [-1,1], [-1,-1],[1,-1]]
+    heapq.heappush(op_list, (0, [start_r, start_c]))
+
+    in_op_l[start_r, start_c] = True
+    g_val[start_r, start_c] = 0
+    f_val[start_r, start_c] = 0
+    [row, col] = [start_r, start_c]
+
+    while len(op_list) > 0 and [row, col] != [goal_r, goal_c]:
+        [row, col] = heapq.heappop(op_list)[1]
+        in_cl_l[row, col] = True
+        adj_node = [[row+i, col+j] for [i,j] in adj]
+        for [r, c] in adj_node:
+            if grid_map[r,c] != 0 or in_cl_l[r,c]:
+                continue
+            g = g_val[row, col] + math.sqrt((row-r)**2 + (col-c)**2) + cost_map[r, c]
+            h = math.sqrt((goal_r-r)**2 + (goal_c - c)**2)
+            f = g + h
+
+            if g < g_val[r, c]:
+                g_val[r, c] = g
+                f_val[r,c] = f
+                prev[r, c] = [row, col]
+            if not in_op_l[r, c]:
+                heapq.heappush(op_list, (f_val[r, c], [r,c]))
+                in_op_l[r, c] = True
+
+    if[row, col] != [goal_r, goal_c]:
+        print("Error")
+        return[]
+
+    path = []
+    while[prev[row, col][0], prev[row, col][1]] != [-1, -1]:
+        path.insert(0, [row, col])
+        [row, col] = prev[row, col]
+        print("Ruta calculada")
+    return path
+#------------------------------------------------------------------------
 def get_maps():
     print("Getting inflated and cost maps...")
     clt_static_map = rospy.ServiceProxy("/static_map"  , GetMap)
