@@ -18,7 +18,7 @@ from nav_msgs.msg import Path
 from nav_msgs.srv import *
 from collections import deque
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "toriz_poblano"
 
 msg_path = Path()
 
@@ -31,8 +31,52 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
     #
+    
+    lista_A = []
+    lista_C = []
+    CL = numpy.full (grid_map.shape, False)
+    OL = numpy.full (grid_map.shape, False)
+    val_g = numpy.full(grid_map.shape, float("inf"))
+    val_f = numpy.full(grid_map.shape, float("inf"))
+    adjacents = [[1,0],[0,1],[-1,0],[0,-1],[1,1],[-1,1], [-1,-1], [1,-1]]
+    previous = numpy.full((grid_map.shape[0], grid_map.shape[0],2), -1)
+    heapq.heappush(lista_A, (0,[start_r, start_c]))
+    
+    OL[start_r, start_c]= True
+    val_g[start_r,start_c] = 0
+    val_f[start_r,start_c] = 0
+    
+    [M,N] = [start_r, start_c]
+    
+    while len(lista_A)>0 and [M,N] != [goal_r, goal_c]:
+    	[M,N] = heapq.heappop(lista_A)[1]
+    	CL[M,N] = True
+	adjacents_nodes = [[M+i, N+j] for [i,j] in adjacents]
+	for [r,c] in adjacents_nodes:
+	    if grid_map[r,c] != 0 or CL[r,c]:
+            	continue
+	    g=  val_g [M,N] +math.sqrt((M-r)**2+(N-c)**2)+ cost_map[r,c]
+	    h = math.sqrt((goal_r-r)**2+(goal_c-c)**2)
+	    f = g+h
+	    if g < val_g[r,c]:
+		val_g[r,c] = g 
+		val_f[r,c] = f
+		previous[r,c] = [M,N]
+	    if OL[r,c] != True:
+		heapq.heappush(lista_A, (val_f[r,c],[r,c]))
+		OL[r,c] = True
+    
+    if [M,N] != [goal_r,goal_c]:
+	print("No se encontro path")
     path = []
-    return path
+    
+    print("Se calculo exitosamente el path : ) recopilando")
+
+    while [[M,N][0],[M,N][1]]!=[-1,-1]:
+	path.insert(0,[M,N])
+	[M,N] = previous[M,N]	
+	
+    return path  
 
 def get_maps():
     print("Getting inflated and cost maps...")
