@@ -66,7 +66,7 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 
     f_costs[start_r, start_c] = 0
 
-    print("g cost de nodo INICIO=  ", g_costs[start_r, start_c])
+    #print("g cost de nodo INICIO=  ", g_costs[start_r, start_c])
 
     # Agrega nodo de inicio a lista abierta
     open_list.append([[start_r, start_c], 0])
@@ -82,6 +82,16 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 
     while open_list:
         #rospy.loginfo("dentro de while")
+
+        # Verifica que el punto deseado este dentro de los limites del mapa
+        if goal_r > 512 or goal_c > 892:
+            print("Objetivo fuera de mapa")
+            break
+
+        # Verifica que el punto deseado no este dentro de un obstaculo
+        if grid_map[goal_r, goal_c] > 50:
+            print("El objetivo esta sobre un obstaculo, intente con otro punto")
+            break
         
         # Ordena open_list de acuerdo con el costo f mas bajo [[[x1,y1],f1], [[x2,y2],f2],...]
         open_list.sort(key = lambda x: x[1])
@@ -113,27 +123,27 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
         # Vecinos de nodo actual
 
         # Superior
-        if cost_map[r_actual-1, c_actual] <= 50:     # verifica si la celda no esta ocupada
+        if grid_map[r_actual-1, c_actual] <= 50:     # verifica si la celda no esta ocupada
              # suma la distancia al vecino con costo en ese nodo
-            cost = dist + cost_map[r_actual-1, c_actual]   
+            cost = dist + grid_map[r_actual-1, c_actual]   
             adjacents.append([[r_actual-1, c_actual], cost])  # agrega elemento a lista vecinos
             #print("registra nodo arriba, costo = ", cost)
 
         # Izqierda
-        if cost_map[r_actual, c_actual-1] <= 50:
-            cost = dist + cost_map[r_actual, c_actual-1]
+        if grid_map[r_actual, c_actual-1] <= 50:
+            cost = dist + grid_map[r_actual, c_actual-1]
             adjacents.append([[r_actual, c_actual-1], cost])
             #print("registra nodo izq, costo = ", cost)
 
         # Derecha
-        if cost_map[r_actual, c_actual+1] <= 50:
-            cost = dist + cost_map[r_actual, c_actual+1]
+        if grid_map[r_actual, c_actual+1] <= 50:
+            cost = dist + grid_map[r_actual, c_actual+1]
             adjacents.append([[r_actual, c_actual+1], cost])
             #print("registra nodo der, costo = ", cost)
         
         # Inferior
-        if cost_map[r_actual+1, c_actual] <= 50:
-            cost = dist + cost_map[r_actual+1, c_actual]
+        if grid_map[r_actual+1, c_actual] <= 50:
+            cost = dist + grid_map[r_actual+1, c_actual]
             adjacents.append([[r_actual+1, c_actual], cost])
             #print("registra nodo abajo, costo = ", cost)
         
