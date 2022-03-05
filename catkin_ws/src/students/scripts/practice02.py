@@ -32,8 +32,9 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
     #
-    in_closed_l =numpy.full( grid_map.shape, False)
-    in_open_l   =numpy.full( grid_map.shape, False)
+    # Declaramos los arrglos que se van a usar para la calcular la ruta
+    in_closed_l =numpy.full( grid_map.shape, False) #Hacemos la lista para cerrada y con el .shape genramos un matriz
+    in_open_l   =numpy.full( grid_map.shape, False) # Haccemos la lista abirta pra la matriz
     g_values    =numpy.full( grid_map.shape, float("inf"))
     f_values    =numpy.full( grid_map.shape, float("inf"))
     previous    =numpy.full((grid_map.shape[0], grid_map.shape[0], 2), -1)
@@ -65,13 +66,14 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
                 in_open_l[r,c] = True
                 
     if [row,col] != [goal_r, goal_c]:
-        print("Cannot calculate path. :'(")
+        print("No se puede calcular la ruta :'(")
         return []
     path = []
-    while [previus[row,col][0], previus[row,col][1]] != [-1,-1]:
-        path.insert(0, [row,col])
-        [row,col] = previus[row,col]
-    print("Path calculated succesfully :D ")
+
+    while [previous[row,col][0], previous[row,col][1]] != [-1,-1]:
+        path.insert(0, [row,col]) # insertamos en el indice cero el nodo actual
+        [row,col] = previous[row,col]#asignamos el nodo actual al nodo previo
+    print("Ruta calculada:D")
     return path
     return path
 
