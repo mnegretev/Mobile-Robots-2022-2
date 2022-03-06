@@ -34,77 +34,45 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 	 	   
     [height, width] = grid_map.shape
     path = []
-    OL=[]
-    CL=	[]
-    g=[]
-    f=[]
-    p=[];
+    g_values=numpy.full(grid_map.shape,float("inf"))
+    f_values=numpy.full(grid_map.shape,float("inf"))
+    previous=numpy.full((grid_map.shape,float[0],grid_map.shape,float[1],2),-1)
+    in_open_list=numpy.full(grid_map.shape, False)
+    in_closed_list=numpy.full(grid_map.shape, False)
+    adjacent_idx =[[1,0],[0,1],[-1,0],[0,-1]]
+    open_list=[]
+    heapq.heapify(open_list)
+    closed_list=[]
 
-    # Inicializamos todo en infinito, en este caso sera 100
-    for i in range(0,height):
-	g.append([])
-	f.append([])
-	p.append([])
-	for j in range(0,width):
-		g[i].append(10000)
-		f[i].append(10000)
-		p[i].append([0,0])
-
-    ns=[start_r,start_c]
-    ng=[goal_r,goal_c]
-    n=ns;
-    OL.append(ns)
-    
-    f[start_r][start_c]=0
-    g[start_r][start_c]=0
-    while OL and n != ng:
-	
-	faux=f[OL[0][0]][OL[0][1]]
-	tm=OL[0][0]
-	pm=OL[0][1]
-	for i in OL:
-		if f[i[0]][i[1]]<faux:
-			faux=f[i[0]][i[1]]
-	 		tm=i[0]
-			pm=i[1]
-	n=[tm,pm]
-        
-	CL.append(OL.pop(OL.index(n)))
-	for i in [[n[0]-1,n[1]],[n[0]+1,n[1]],[n[0],n[1]+1],[n[0],n[1]-1]]:
-		if cost_map[i[0]][i[1]] < 50: #Se ignoran puntos ocupados
-				if i[0] >= 0 or i[1] >=0 : #Se ignoran puntos fuera del mapa
-					if i != n:
-						na=i
-						
-						gr=g[n[0]][n[1]]+cost_map[na[0]][na[1]]+1
-						hr=abs(ns[0]-na[0])+abs(ns[1]-na[1])
-						fr=hr+gr
-						
-						if gr < g[na[0]][na[1]]:
-								
-							g[na[0]][na[1]]=gr
-							f[na[0]][na[1]]=fr
-							p[na[0]][na[1]]=n
-							
-						if OL.count(na) == 0 and CL.count(na)==0:
-							OL.append(na)	
-							
-					
-			
-    
-    if n != ng:
-	return -1
-    
+    g_values[start_r, start_c]=0
+    g_values[start_r, start_c]=0
+    heapq.heappush(open_list,(0,[start_r, start_c])
+    [r,c]=[start_r, start_c]
    
-    while p[n[0]][n[1]] != [0,0]:
-	path.insert(0,n)
-	n=p[n[0],n[1]]
-    
-    print(path)
-    print(path[0])
-    print(type(path))
-    print(type(path[0]))
-    
+    while len(open_list) > 0 and [r,c] != [goal_r,goal_c]:
+	[r,c]=heapq.heappop(open_list)[1]
+	closed_list=.append([r,c])
+	adjacent_nodes=[[r+i, c+j] for [i,j] in adjacent_idx]
+	for [nr,nc] in adjacent_nodes:
+		if grid_map[nr,nc] != 0 or not in_closed_list[nr,nc]:
+			continue
+		g=g_values[nr,nc]+1+cost_map[nr,nc]
+                h=abs(goal_r-nr)+abs(goal_c-nc)
+		f=g+h
+		if g < g_values[nr,nc]:
+			g_values[nr,nc]=g;
+			f_values[nr,nc]=f;
+                        previous[nr,nc]=[r,c]
+                if not in_open_list[nr,nc]:
+			heapq.heappush(open_list,(f,[nr,nc])
+			in_open_list[nr,nc] = True
+     if[r,c] != [goal_r,goal_c]:
+	print("Cannot calculate path")
+	return[]
+     while previous[r,c][0] != -1:
+	path.incert(0,[r,c])
+	[r,c]=previous[r,c]			
+
     return path
 def get_maps():
     print("Getting inflated and cost maps...")
