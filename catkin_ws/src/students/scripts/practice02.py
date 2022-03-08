@@ -23,58 +23,50 @@ NAME = "Andrea Valle Rodriguez"
 msg_path = Path()
 
 def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
-	c=numpy.copy(cost_map)
-	ns=[start_r,start_c]
-	ng=[goal_r,goal_c]
-	OL=[Path(ns)]
+	g_values = numpy.full(grid_map.shape,float ("inf"))
+	f_values = numpy.full(grid_map.shape,float("inf"))
+	previous = numpy.full((grid_map.shape[0],grid_map.shape[1],2),-1)
+	closed_list=[]
+	open_list=[]
+	adjacent_idx=[[1,0],[0,1],[-1,0],[0,-1]]
+	steps=0
+	heapq.heapify(open_list)
+	g_values[start_r,start_c]=0
+	f_values[start_r,start_c]=0
+	
+	heapq.heappush(open_list,(0,[start_r,start_c]))
+	[r,c]=[start_r,start_c]
+	
+	while len(open_list)>0 and [r,c] !=[goal_r,goal_c]:
+		[r,c]=heapq.heappop(open_list)[1]
+		closed_list.append([r,c])
+		adjacent_nodes=[[r+i,c+j] for [i,j] in adjacent_idx]
+		for [nr,nc] in adjacent_nodes:
+			if grid_map[nr,nc] != 0 or [nr,nc] in closed_list:
+				continue
+			g=g_values[r,c]+1 +cost_map[nr,nc]
+			h=abs(goal_r - nr)+ abs(goal_c - nc)
+			f=g+h
+			if g<g_values[nr,nc]:
+				g_values[nr,nc]=g
+				f_values[nr,nc]=f
+				previous[nr,nc]=[r,c]
+			if [nr,nc] not in open_list:
+				heapq.heappush(open_list,(f,[nr,nc]))
+	print("Path calculated succesfully")
+	steps += 1
+	if [r,c] != [goal_r,goal_c]:
+		print("The path can't be calculated")
+		return []
+	print("Path calculated after" +str(steps)+"steps")
+	path=[]
 
-	na=ns
-	fn= 0
-	gn= 0
-	cont= 0
+	while previous[r,c][0] != -1:
+		path.insert(0,[r,c])
+		[r,c]=previous[r,c]
+	return path
 
-	while OL != None and OL[0] != ng:
-		n = OL.pop(min(OL[:,g]))
-		fna,gna=n
-		#print(n)
-		CL = OL[0]
-		OL.pop(0)
-		
-		for i in {-1,2,-1,2}:
-			if cont<2:
-				n=n+[i,0]
-				cont +1
-			else:
-				if i==-1:			
-					n=n+[-1,0]
-				n=n+[0,i]
-				g=gn+c(na)+distance(n,na)
-				
-				nax,nay=na
-				ngx,ngy=ng
-				h=(ngx-nax)+(ngy-nay)
-				f=g+h
-
-				if g<gna:
-					gna=g
-					fna=f
-					pna=n
-		if n != ng:
-			return error
-	msg_path = []
-
-	while pna != None:
-		msg_path = n[0]
-	return msg_path
-
-def distance(n,na):
-	x1,y1 = n
-	x2,y2 = na
-	return math.sqrt((x1-x2)**2+(y1,y2)**2)
-
-	#euclidean == math.sqrt((start_r,start_c)**2+(goal_r,goal_c**2)
-
-
+	
 def get_maps():
     print("Getting inflated and cost maps...")
     clt_static_map = rospy.ServiceProxy("/static_map"  , GetMap)
