@@ -22,63 +22,53 @@ NAME = "Lopez_Gutierrez_Francisco_Emmanuel"
 
 msg_path = Path()
 
-def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
-    c = numpy.copy(cost_map)
-    ns = [start_r, start_c]
-    ng = [goal_r, goal_c]
-    OL = [Path(ns)]
-
-    na = ns
-    fn = 0
-    gn = 0
-    cont = 0
-
-    while OL != None and OL[0] != ng:
-	n = OL.push(min(OL[:,g]))
-        fna, gna = n
-        CL = OL[0] 
-	OL.pop(0)
-         
-      	for i in {-1,2,-1,2}:
-            if cont < 2:
-		n = n + [i,0]
-		cont = cont + 1  
-	    else:
-		if i == -1:
-                    n = n + [-1,i]
-		n = n + [0,i]
-	        g = gn + costos(na) + distance(n,na)
-	  
-	    nax, nay = na
-	    ngx, ngy = ng 
-            h = (ngx - nax) + (ngy - nay)
-	    f = g + h
-
-	    if g < g(na)
-                gna = g
-		fna = f
-		pna = n    
-
-        if n =! ng
-	    return error
-    msg_path = []
-
-    while pna != None:
-	msg_path = n[0]
-    return msg_path
-         
-def distance(n,na)
-    x1, y1 = n
-    x2, y2 = na
-    return math.sqrt((x1-x2)**2 + (y1-y2)**2)) 
-
     # TODO:
     # Write the A* algorithm to find a path in an occupancy grid map given the start cell
     # [start_r, start_c], the goal cell [goal_r, goal_c] and the map 'grid_map'.
     # Return a set of points of the form [[start_r, start_c], [r1,c1], [r2,c2], ..., [goal_r, goal_c]]
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
-    #
+    # print(type(grid_map))
+
+def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
+  
+    f_values = numpy.full(grid_map.shape,float("inf"))
+    g_values = numpy.full(grid_map.shape,float("inf"))
+    previous = numpy.full((grid_map.shape[0],grid_map.shape[1],2),-1)
+    cruz = [[1,0][0,1][-1,0][0,-1]]
+
+    OL = []
+    heapq.heapify(OL)
+    CL = []
+
+    f_values[start_e,start_c] = 0
+    g_values[start_e,start_c] = 0
+    [r,c] = [start_e,start_c] #Nodo actual
+    heapq.heappush(OL,(0,[start_e,start_c]))
+
+    while len(OL) > 0 and [r,c] != [goal_r, goal_c]:
+	[r,c] = heapq.heappop(OL)[1]
+	CL.append([r,c])
+        adjacentes = [[r+i,c+j] for [i,j] in cruz]
+        for [nr, nc] in adjacentes:
+	    if grid_map[nr,nc] == 100 or [nr,nc] in CL:
+		continue
+	    g = g_values[nr,nc] + 1 + cost_map[nr,nc]
+	    h = abs(goal_r - nr) + abs(goal_c - nc) 
+   	    f = g + h
+	    if g < g_values[nr,nc]:
+		g_values[nr,nc] = g
+		f_values[nr,nc] = f
+		previus[nr,nc] = [r,c]
+	    if [nr,nc] not in OL:
+		heapq.heappush(OL,(f,[nr,nc]))
+
+    if [r,c] != [goal_r,goal_c]:
+	print("No se encontro la ruta")
+	return []
+    while previus[r,c][0] != -1:
+        path.insert(0,[r,c])
+	[r,c] = previous[r,c]
     path = []
     return path
 
