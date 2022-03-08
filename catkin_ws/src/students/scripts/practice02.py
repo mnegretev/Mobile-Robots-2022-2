@@ -23,11 +23,40 @@ NAME = "GONZALEZ PASTOR"
 msg_path = Path()
 
 def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
-    costo= numpy.copy(cost_map)
-    ns= [start_r, start_c]
-    ng=[goal_r, goal_c]
-    OL= [Path(ns)]
+    f_values=numpy.full(grid_map.shape,float("inf"))
+    g_values=numpy.full(grid_map.shape,float("inf"))
+    open_list=[]
+    heapq.heapify(open_list)
+    closed_list=[]
+    previous= numpy.full((grid_map.shape[0],grid_map.shape[1],2),-1)
+    g_values[start_r,start_c]=0
+    f_values[start_r,start_c]=0
+    heapq.heappush(open_list,[0,[start_r,start_c]])
+    [r,c]=[start_r,start_c]
 
+    while len(open_list)>0 and [r,c] != [goal_r,goal_c]:
+	[r,c]=heapq.heapop(open_list)[1]
+	closed_list.append([r,c])
+	for [nr,nc] in adjacent_nodes:
+	     if grid_map[nr,nc] != 0 or [nr,nc] in closed_list:
+		continue
+	     g= g_values[r,c]+1+cost_map[nr,nc]
+	     h= abs(goal_r-nr)+abs(goal_c-nc)
+	     f=g+h
+             if g< g_values[nr,nc]:
+		g_values[nr,nc]=g
+		f_values[nr,nc]=f
+		previous[nr,nc]=[r,c]
+	     if [nr,nc] not in open_list:
+		heapq.heappush(open_list,(f,[nr,nc]))
+	     if [r,c] != [goal_r, goal_c]:
+		print("Cannot calculate path")
+		return []
+             path=[]
+	     while previous[r,c][0] != -1:
+		path.insert(0,[r,c])
+		[r,c]=previous[r,c]
+	     return path
     na= ns
     fn= 0
     gn= 0
