@@ -35,41 +35,47 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     f_values = numpy.full(grid_map.shape,float("inf"))
     g_values = numpy.full(grid_map.shape,float("inf"))
     previous = numpy.full((grid_map.shape[0],grid_map.shape[1],2),-1)
-    cruz = [[1,0][0,1][-1,0][0,-1]]
+    in_closed_list = numpy.full(grid_map.shape,False)
+    in_open_list = numpy.full(grid_map.shape,False)
+    cruz = [[1,0],[0,1],[-1,0],[0,-1]]
 
     OL = []
     heapq.heapify(OL)
     CL = []
 
-    f_values[start_e,start_c] = 0
-    g_values[start_e,start_c] = 0
-    [r,c] = [start_e,start_c] #Nodo actual
-    heapq.heappush(OL,(0,[start_e,start_c]))
+    f_values[start_r,start_c] = 0
+    g_values[start_r,start_c] = 0
+    [r,c] = [start_r,start_c] #Nodo actual
+    in_open_list[start_r,start_c] = True
+    heapq.heappush(OL,(0,[start_r,start_c]))
 
     while len(OL) > 0 and [r,c] != [goal_r, goal_c]:
 	[r,c] = heapq.heappop(OL)[1]
 	CL.append([r,c])
+        in_closed_list[r, c] = True
         adjacentes = [[r+i,c+j] for [i,j] in cruz]
         for [nr, nc] in adjacentes:
-	    if grid_map[nr,nc] == 100 or [nr,nc] in CL:
+	    if grid_map[nr,nc] != 0 or in_closed_list[nr,nc]:
 		continue
-	    g = g_values[nr,nc] + 1 + cost_map[nr,nc]
+	    g = g_values[r,c] + 1 + cost_map[nr,nc]
 	    h = abs(goal_r - nr) + abs(goal_c - nc) 
    	    f = g + h
 	    if g < g_values[nr,nc]:
 		g_values[nr,nc] = g
 		f_values[nr,nc] = f
-		previus[nr,nc] = [r,c]
-	    if [nr,nc] not in OL:
+		previous[nr,nc] = [r,c]
+	    if not in_open_list[nr,nc]:
 		heapq.heappush(OL,(f,[nr,nc]))
 
     if [r,c] != [goal_r,goal_c]:
 	print("No se encontro la ruta")
 	return []
-    while previus[r,c][0] != -1:
+    print("Se encontro la ruta")
+    path = []
+    while previous[r,c][0] != -1:
         path.insert(0,[r,c])
 	[r,c] = previous[r,c]
-    path = []
+
     return path
 
 def get_maps():
