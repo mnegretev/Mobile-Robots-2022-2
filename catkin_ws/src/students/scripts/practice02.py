@@ -26,32 +26,42 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 	g_values = numpy.full(grid_map.shape,float ("inf"))
 	f_values = numpy.full(grid_map.shape,float("inf"))
 	previous = numpy.full((grid_map.shape[0],grid_map.shape[1],2),-1)
+	
+	in_closed_list=numpy.full(grid_map.shape,False)
+	in_open_list=numpy.full(grid_map.shape,False)
+
 	closed_list=[]
 	open_list=[]
+
 	adjacent_idx=[[1,0],[0,1],[-1,0],[0,-1]]
 	steps=0
 	heapq.heapify(open_list)
+
 	g_values[start_r,start_c]=0
-	f_values[start_r,start_c]=0
+	f_values[start_r,start_c]=0	
+	[r,c]=[start_r,start_c]
+
+	in_open_list[start_r,start_c]= True
 	
 	heapq.heappush(open_list,(0,[start_r,start_c]))
-	[r,c]=[start_r,start_c]
 	
-	while len(open_list)>0 and [r,c] !=[goal_r,goal_c]:
+	
+	while len(open_list) > 0 and [r,c] != [goal_r,goal_c]:
 		[r,c]=heapq.heappop(open_list)[1]
 		closed_list.append([r,c])
+		in_closed_list[r,c] = True
 		adjacent_nodes=[[r+i,c+j] for [i,j] in adjacent_idx]
 		for [nr,nc] in adjacent_nodes:
-			if grid_map[nr,nc] != 0 or [nr,nc] in closed_list:
+			if grid_map[nr,nc] != 0 or in_closed_list[nr,nc]:
 				continue
 			g=g_values[r,c]+1 +cost_map[nr,nc]
 			h=abs(goal_r - nr)+ abs(goal_c - nc)
 			f=g+h
-			if g<g_values[nr,nc]:
+			if g < g_values[nr,nc]:
 				g_values[nr,nc]=g
 				f_values[nr,nc]=f
 				previous[nr,nc]=[r,c]
-			if [nr,nc] not in open_list:
+			if not in_open_list[nr,nc]:
 				heapq.heappush(open_list,(f,[nr,nc]))
 	print("Path calculated succesfully")
 	steps += 1
@@ -63,7 +73,7 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 
 	while previous[r,c][0] != -1:
 		path.insert(0,[r,c])
-		[r,c]=previous[r,c]
+		[r,c] = previous[r,c]
 	return path
 
 	

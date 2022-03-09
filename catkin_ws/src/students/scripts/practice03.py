@@ -16,27 +16,28 @@ from geometry_msgs.msg import Pose, PoseStamped, Point
 from custom_msgs.srv import SmoothPath
 from custom_msgs.srv import SmoothPathResponse
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "Valle Rodriguez Andrea"
 
 msg_smooth_path = Path()
 
 def smooth_path(Q, alpha, beta):
-    print("Smoothing path with params: " + str([alpha,beta]))
-    #
-    # TODO:
-    # Write the code to smooth the path Q, using the gradient descend algorithm,
-    # and return a new smoothed path P.
-    # Path is composed of a set of points [x,y] as follows:
-    # [[x0,y0], [x1,y1], ..., [xn,ym]].
-    # The smoothed path must have the same shape.
-    # Return the smoothed path.
-    #
-    P = numpy.copy(Q)
-    tol     = 0.00001                   
-    nabla   = numpy.full(Q.shape, float("inf"))
-    epsilon = 0.1                       
+
+	print("Smoothing path with params: " + str([alpha,beta]))
+
+	P = numpy.copy(Q)
+
+   	tol     = 0.00001                   
+	epsilon = 0.1     
+	mag= tol +1
+	
+	while mag > tol:
+		nabla   = numpy.full(Q.shape, float("inf"))
+		for i in (1, len(Q)- 1):
+			nabla[i]=alpha*(2*P[i]-P[i-1]-P[i+1])+beta*(P[i]-Q[i])
+		mag = numpy.linalg.norm(nabla)
+		P=P - epsilon*nabla                
     
-    return P
+    	return P
 
 def callback_smooth_path(req):
     alpha = rospy.get_param('/path_planning/smoothing_alpha')
