@@ -42,7 +42,6 @@ def smooth_path(Q, alpha, beta):
     print("nabla_magnitud: ", numpy.linalg.norm(nabla))
     rospy.loginfo("Inicializacion finalizada")
     
-    
     while numpy.linalg.norm(nabla) > tol:
         i = 1
         # Ahora calculamos el gradiente en J(p)
