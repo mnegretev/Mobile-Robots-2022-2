@@ -60,18 +60,15 @@ def smooth_path(Q, alpha, beta):
             # Agrega la i-esima componente de nabla comenzando en indice 1
             nabla[i] = elemento_i
             i += 1
-
         #Primer y ultimo elemento del gradiente se hacen cero
         nabla[0] = 0
         nabla[N-1] = 0
-
         #print("Nabla array: ", nabla)
 
         # Diferencia de la variable i-esima de J y su variable correspondiente en el gradiente por el tamano de paso
         # Actualizacion de puntos P
         for p, nb in zip(P, nabla):
             p = p - epsilon*nb
-
         print("nabla_magnitud: ", numpy.linalg.norm(nabla))
     return P
 
