@@ -21,6 +21,7 @@ NAME = "carrillo_salazar"
 msg_smooth_path = Path()
 
 def smooth_path(Q, alpha, beta):
+
     print("Smoothing path with params: " + str([alpha,beta]))
 
     P = numpy.copy(Q)
