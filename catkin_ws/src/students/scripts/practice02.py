@@ -41,6 +41,8 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     #Valores de g y f -> Inicializados en infinito
     valores_g = numpy.full(grid_map.shape, float("inf"))
     valores_f = numpy.full(grid_map.shape, float("inf"))
+    closed_list_flag = numpy.full(grid_map.shape, False)
+    open_list_flag   = numpy.full(grid_map.shape, False)
     n_previo  = numpy.full((grid_map.shape[0], grid_map.shape[0], 2), -1)
 
     #Definicion de nodos
@@ -50,34 +52,30 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 
     #Definicion de lista abierta y lista cerrada
     openList = []
-    f_values = []
     closedList = []
 
     #Valores iniciales
     valores_g[start_r,start_c] = 0
     valores_f[start_r,start_c] = 0
-    openList.append(nodoInicial)
-    f_values.append(0)
-
+    heapq.heappush(openList, (0, [start_r,start_c]))
+    open_list_flag[start_r,start_c] = True
     #Se inicializa
     nodoActual = nodoInicial
 
     while len(openList)>0 and nodoActual != nodoMeta:
-        #Se busca todos los valores de F de la lista abierta
-        index_min_f = f_values.index(min(f_values)) 
-        #Se quita el de menor valore de F
-        nodoActual = openList.pop(index_min_f)
-        f_values.pop(index_min_f)
+        [aX,aY] = heapq.heappop(openList)[1]
+        open_list_flag[aX,aY] = False
+        closed_list_flag[aX,aY] = True
+        nodoActual = [aX,aY]
         #Se inserta el nodo con menor valor
         closedList.append(nodoActual)
 
         #Recorriendo nodos adyacentes
         for i in range(0,len(nodosAdyacentes)):
             #Definiendo nodo actual y vecinos
-            [aX,aY] = nodoActual
             [x,y]   = list(numpy.array(nodoActual)+numpy.array(nodosAdyacentes[i]))
             #Variables auxiliares
-            if grid_map[x, y] != 0 or [x,y] in closedList:
+            if grid_map[x, y] != 0 or closed_list_flag[x,y]:
                 continue
             g = valores_g[aX,aY] + distancia([x,y],nodoMeta) + cost_map[x,y]
             h = distancia([x,y],nodoMeta)
@@ -89,11 +87,12 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
                 n_previo [x,y] = [aX,aY]
             
             #Se agrega los nodos adyacentes posibles a la lista abierta
-            if (([x,y] not in openList) and ([x,y] not in closedList)):
-                openList.append([x,y])
-                f_values.append(valores_f[x,y])
+            if not open_list_flag[x,y]:
+                heapq.heappush(openList, (valores_f[x,y], [x,y]))
+                open_list_flag[x,y] = True
 
     #Comprobando la existencia de la ruta
+    print(nodoActual,nodoMeta)
     if nodoActual != nodoMeta:
         print("No es posible calcular la ruta")
         return []
