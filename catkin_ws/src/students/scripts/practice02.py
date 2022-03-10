@@ -62,13 +62,12 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 				f_values[nr,nc]=f
 				previous[nr,nc]=[r,c]
 			if not in_open_list[nr,nc]:
+				in_closed_list[nr,nc]=True
 				heapq.heappush(open_list,(f,[nr,nc]))
 	print("Path calculated succesfully")
-	steps += 1
 	if [r,c] != [goal_r,goal_c]:
 		print("The path can't be calculated")
 		return []
-	print("Path calculated after" +str(steps)+"steps")
 	path=[]
 
 	while previous[r,c][0] != -1:
