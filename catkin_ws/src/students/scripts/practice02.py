@@ -31,63 +31,53 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     # indicating the indices (cell coordinates) of the path cells.
     # If path cannot be found, return an empty tuple []
     #
-    ns = [start_r,start_c]
-    ng = [goal_r,goal_c]
+    nodo_inicial = [start_r,start_c]
+    nodo_meta = [goal_r,goal_c]
     dimensiones = grid_map.shape
     infinito = float('inf')
-    fn = np.ones(dimensiones)*infinito
-    gn = np.ones(dimensiones)*infinito
-    pn_row = np.zeros(dimension) #pn_row y pn_col para guardar coordenas de nodo previo
-    pn_col = np.zeros(dimension) #
-    OL = []
-    CL = []
-    OL.insert(0,ns)
-    fn[ns[0],ns[1]] = 0
-    gn[ns[0],ns[1]] = 0
-    nc=ns #Nodo actual
-    OLfn = [] #Lista auxiliar que contendra los valores fn de los elementos de OL
-    OLgn = [] #Lista auxiliar que contendra los valores gn de los elementos de OL
-    while OL and nc != ng:    
-        for i in range(len(OL)):
-            auxind = OL[i] #auxind contiene el nodo iesimo de OL 
-            OLfn.append(fn[auxind[0],auxind[1]])  
-            OLgn.append(gn[auxind[0],auxind[1]])
-        indmin = np.argmin(OLfn) #indice del valor minimo fn de los elementos de OL
-        #print('Indice del Minimo de OL es: {0}'.format(indmin))
-        #print('Ol es: \n {0}'.format(OL))
-        nc = OL.pop(indmin) #El nuevo nodo sera el del valor minimo y se saca de OL
-        valormin=OLfn.pop(indmin) #Se saca el valor fn del nuevo nodo
-        CL.append(nc) #Se agregar nc a la lista cerrada
-        na_aux = [[-1,0],[1,0],[0,-1],[0,1]]#Nodos vecinos de nc conectividad 4
-        for i in range(len(na_aux)):
-            auxind_na = na_aux[i] #auxind_na contiene el nodo vecino iesimo
-            na_row = nc[0]+auxind_na[0]
-            na_col = nc[1]+auxind_na[1]
-            na = [na_row,na_col]
-            g = gn[nc[0],nc[1]]+1 #Mas el costo
-            h = abs(na_row-ng[0])+abs(na_col-ng[1])
-            f= g + h
-#--------------------
-        #--
-        if g < gn[na_row,na_col] :
-            gn[na_row,na_col]= g
-            fn[na_row,na_col]= f
-            pn_row[na_row,na_col] = nc[0]
-            pn_col[na_row,na_col] = nc[1]
-        if (na not in OL) and (na not in CL):
-            OL.append(na)
-#---------------------------------            
-    if nc != ng:
-        print('-----------No existe una solucion-----------')
-    else:
-        path = []
-        while nc != ns:
-            path.insert(0,nc)
-            nc = [pn_row[nc[0],nc[1]],pn_col[nc[0],nc[1]]]
-        path.insert(0,nc)
-        
-    return path
+    fn = numpy.ones(dimensiones)*infinito
+    gn = numpy.ones(dimensiones)*infinito
+    previos = numpy.full((grid_map.shape[0],grid_map.shape[1], 2),-1)
+    adyacentes_aux = [[-1,0],[1,0],[0,-1],[0,1]]
+    in_OL = numpy.full(grid_map.shape,False)
+    in_CL = numpy.full(grid_map.shape,False)
 
+    OL = []
+    heapq.heapify(OL)
+    CL = []
+    fn[nodo_inicial[0],nodo_inicial[1]] = 0
+    gn[nodo_inicial[0],nodo_inicial[1]] = 0
+    nodo_actual=nodo_inicial
+    in_OL[nodo_inicial[0],nodo_inicial[1]] = True
+    heapq.heappush (OL,(0,[start_r,start_c]))  
+    
+    while len(OL)>0 and nodo_actual != nodo_meta:
+        nodo_actual = heapq.heappop(OL)[1] 
+        CL.append(nodo_actual)
+        in_CL[nodo_actual[0],nodo_actual[1]] = True
+        nodos_adyacentes = [[nodo_actual[0]+i,nodo_actual[1]+j] for [i,j] in adyacentes_aux]
+        for [nr, nc] in nodos_adyacentes :
+            if grid_map[nr,nc] != 0 or in_CL[nr,nc]:
+                continue
+            g = gn[nodo_actual[0],nodo_actual[1]]+1+cost_map[nr,nc]
+            h = abs(nodo_meta[0]-nr)+abs(nodo_meta[1]-nc)
+            f = g+h
+            if g< gn[nr,nc]:
+                gn[nr,nc] = g
+                fn[nr,nc] = f
+                previos[nr,nc] = [nodo_actual[0],nodo_actual[1]]
+            if not in_OL[nr,nc]:
+                heapq.heappush(OL,(f,[nr,nc]))
+    if nodo_actual != nodo_meta:
+        print("No se puede calcular la ruta")
+        return []
+    path = []
+    print("Ruta calculada")
+    while previos[nodo_actual[0],nodo_actual[1]][0] != -1:
+        path.insert(0,[nodo_actual[0],nodo_actual[1]])
+        nodo_actual = previos[nodo_actual[0],nodo_actual[1]]
+    return path 
+     
 def get_maps():
     print("Getting inflated and cost maps...")
     clt_static_map = rospy.ServiceProxy("/static_map"  , GetMap)
