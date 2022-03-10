@@ -16,7 +16,7 @@ from geometry_msgs.msg import Pose, PoseStamped, Point
 from custom_msgs.srv import SmoothPath
 from custom_msgs.srv import SmoothPathResponse
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "SOLANO GONZALEZ FELIPE DE JESUS"
 
 msg_smooth_path = Path()
 
@@ -32,10 +32,19 @@ def smooth_path(Q, alpha, beta):
     # Return the smoothed path.
     #
     P = numpy.copy(Q)
-    tol     = 0.00001                   
-    nabla   = numpy.full(Q.shape, float("inf"))
-    epsilon = 0.1                       
-    
+    tol     = 0.0000001                   
+    epsilon = 0.1
+    mag = tol + 1      
+
+    while mag > tol:
+        nabla = numpy.full(Q.shape, float(0))
+        for i in range(1,len(nabla)-2):
+            nabla[i] = beta*(P[i]-Q[i]) + alpha*(2*P[i]-P[i-1]-P[i+1])
+        P = P - epsilon * nabla
+        mag = numpy.linalg.norm(nabla)
+
+    print("Ruta suavizada")
+
     return P
 
 def callback_smooth_path(req):
@@ -48,7 +57,7 @@ def callback_smooth_path(req):
     return SmoothPathResponse(smooth_path=msg_smooth_path)
 
 def main():
-    print "PRACTICE 03 - " + NAME
+    print ("PRACTICE 03 - " + NAME)
     rospy.init_node("practice03", anonymous=True)
     rospy.Service('/path_planning/smooth_path', SmoothPath, callback_smooth_path)
     pub_path = rospy.Publisher('/path_planning/smooth_path', Path, queue_size=10)
