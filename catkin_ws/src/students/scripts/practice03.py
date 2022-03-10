@@ -23,29 +23,21 @@ msg_smooth_path = Path()
 def smooth_path(Q, alpha, beta):
     print("Smoothing path with params: " + str([alpha,beta]))
     
-    P = numpy.copy(Q)
+    P = numpy.copy(Q) 
     tol = 0.00001 
     mag = tol + 1
     epsilon = 0.1
 
-    while mag > tol:
-	nabla = numpy.full(Q.shape, float("inf"))
-	for i in range(1, len(Q)-1, 1):                 
-            nabla[i] = alpha*(2*P[i]-P[i-1]-P[i+1] + beta*(P[i]-Q[i]))
-        mag = numpy.linalg.norm(nabla)
-	P = P - epsilon*nabla                  
+    nabla = numpy.full(Q.shape, float("inf")) #Se define nabla con el mismo tamano de Q y con sus extremos en vallor 0.
+    nabla[0], nabla[len(Q)-1] = 0, 0
+
+    while mag > tol:                   # Iteracion hasta llegar a la tolerancia.
+	for i in range(1, len(Q)-1):   #La iteracion no considera los extremos de la matriz.                 
+            nabla[i] = alpha*(2*P[i]-P[i-1]-P[i+1]) + beta*(P[i]-Q[i]) #Se asigna un valor de gradiente a cada nabla i.
+        mag = numpy.linalg.norm(nabla) # Norma del gradiente.
+	P = P - epsilon*nabla          # Se recorre P contrario al gradiente.            
     
     return P
-
-    #
-    # TODO:
-    # Write the code to smooth the path Q, using the gradient descend algorithm,
-    # and return a new smoothed path P.
-    # Path is composed of a set of points [x,y] as follows:
-    # [[x0,y0], [x1,y1], ..., [xn,ym]].
-    # The smoothed path must have the same shape.
-    # Return the smoothed path.
-    #
 
 def callback_smooth_path(req):
     alpha = rospy.get_param('/path_planning/smoothing_alpha')
