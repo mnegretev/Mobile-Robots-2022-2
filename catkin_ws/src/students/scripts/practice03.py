@@ -38,38 +38,28 @@ def smooth_path(Q, alpha, beta):
     epsilon = 0.1                                   # Tamanio del paso
     N = len(P)                                      # Dimension del gradiente
     print("Dim N = ", N)
-    sum1, sum2 = 0,0
-    print("nabla_magnitud: ", numpy.linalg.norm(nabla))
+    
     rospy.loginfo("Inicializacion finalizada")
     
     while numpy.linalg.norm(nabla) > tol:
         i = 1
-        # Ahora calculamos el gradiente en J(p)
+        # gradiente en J(p)
         while i <= N-2:
-            px_i, py_i = P[i]               # pi
-            px_i_ant, py_i_ant = P[i-1]     # pi-1
-            px_i_sig, py_i_sig = P[i+1]     # pi+1
-            qx_i, qy_i = Q[i]               # qi
-            # Primer y ultimo punto tienen gradiente cero
-
-                # Elemento i-esimo del gradiente
-            elemento_i = alpha*[px_i-px_i_ant, py_i-py_i_ant] - alpha*[px_i_sig - px_i, py_i_sig-py_i] + beta*[px_i-qx_i, py_i-qy_i]
-            #elemento_i = alpha*(P[i]-P[i-1]) - alpha*(P[i+1] - P[i]) + beta*(P[i]-Q[i])
+            elemento_i = alpha*(P[i]-P[i-1]) - alpha*(P[i+1] - P[i]) + beta*(P[i]-Q[i])
             print("elemento_i", elemento_i)
             # Agrega la i-esima componente de nabla comenzando en indice 1
             nabla[i] = elemento_i
             i += 1
         #Primer y ultimo elemento del gradiente se hacen cero
-        nabla[0] = 0
-        nabla[N-1] = 0
-        #print("Nabla array: ", nabla)
-
-        # Diferencia de la variable i-esima de J y su variable correspondiente en el gradiente por el tamano de paso
+        nabla[0] = [0,0]
+        nabla[N-1] = [0,0]
         # Actualizacion de puntos P
-        for p, nb in zip(P, nabla):
-            p = p - epsilon*nb
+        P = P - epsilon*nabla
         print("nabla_magnitud: ", numpy.linalg.norm(nabla))
+    
     return P
+
+
 
 def callback_smooth_path(req):
     alpha = rospy.get_param('/path_planning/smoothing_alpha')
