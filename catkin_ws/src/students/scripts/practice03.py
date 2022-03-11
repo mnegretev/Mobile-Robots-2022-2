@@ -29,11 +29,13 @@ def smooth_path(Q, alpha, beta):
    	tol     = 0.00001                   
 	epsilon = 0.1     
 	mag= tol +1
-	
+	nabla   = numpy.full(Q.shape, float("inf"))
+
 	while mag > tol:
-		nabla   = numpy.full(Q.shape, float("inf"))
+		nabla[0]=[0,0]
 		for i in range(1, len(Q)- 1):
 			nabla[i] = alpha*(2*P[i]-P[i-1]-P[i+1]) + beta*(P[i]-Q[i])
+		nabla[-1]=[0,0]		
 		mag = numpy.linalg.norm(nabla)
 		P = P - epsilon*nabla                
     
