@@ -36,7 +36,7 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     path = []
     g_values=numpy.full(grid_map.shape,float("inf"))
     f_values=numpy.full(grid_map.shape,float("inf"))
-    previous=numpy.full((grid_map.shape,float[0],grid_map.shape,float[1],2),-1)
+    previous=numpy.full((grid_map.shape[0],grid_map.shape[1],2),-1)
     in_open_list=numpy.full(grid_map.shape, False)
     in_closed_list=numpy.full(grid_map.shape, False)
     adjacent_idx =[[1,0],[0,1],[-1,0],[0,-1]]
@@ -45,32 +45,39 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
     closed_list=[]
 
     g_values[start_r, start_c]=0
-    g_values[start_r, start_c]=0
-    heapq.heappush(open_list,(0,[start_r, start_c])
+    f_values[start_r, start_c]=0
+    heapq.heappush(open_list,(0,[start_r, start_c]))
+    
+    in_open_list[start_r, start_c] = True
     [r,c]=[start_r, start_c]
-   
+
     while len(open_list) > 0 and [r,c] != [goal_r,goal_c]:
+	
 	[r,c]=heapq.heappop(open_list)[1]
-	closed_list=.append([r,c])
+	closed_list.append([r,c])
+	in_closed_list[r,c] = True
 	adjacent_nodes=[[r+i, c+j] for [i,j] in adjacent_idx]
 	for [nr,nc] in adjacent_nodes:
+		
 		if grid_map[nr,nc] != 0 or not in_closed_list[nr,nc]:
-			continue
-		g=g_values[nr,nc]+1+cost_map[nr,nc]
-                h=abs(goal_r-nr)+abs(goal_c-nc)
-		f=g+h
-		if g < g_values[nr,nc]:
-			g_values[nr,nc]=g;
-			f_values[nr,nc]=f;
-                        previous[nr,nc]=[r,c]
-                if not in_open_list[nr,nc]:
-			heapq.heappush(open_list,(f,[nr,nc])
-			in_open_list[nr,nc] = True
-     if[r,c] != [goal_r,goal_c]:
+			
+			
+			g=g_values[r,c]+1+cost_map[nr,nc]
+               		h=abs(goal_r-nr)+abs(goal_c-nc)
+			f=g+h
+			if g < g_values[nr,nc]:
+				g_values[nr,nc]=g;
+				f_values[nr,nc]=f;
+                        	previous[nr,nc]=[r,c]
+                	if not in_open_list[nr,nc]:
+				heapq.heappush(open_list,(f,[nr,nc]))
+				in_open_list[nr,nc] = True
+    
+    if[r,c] != [goal_r,goal_c]:
 	print("Cannot calculate path")
 	return[]
-     while previous[r,c][0] != -1:
-	path.incert(0,[r,c])
+    while previous[r,c][0] != -1:
+	path.insert(0,[r,c])
 	[r,c]=previous[r,c]			
 
     return path
