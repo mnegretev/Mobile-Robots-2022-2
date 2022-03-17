@@ -45,10 +45,10 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # Remember to keep error angle in the interval (-pi,pi]
     #
 
+    v_max = 0.8
+    w_max = 1.0	  
     alpha = 0.1
-    beta  = 0.1
-    w_max = 1.0
-    v_max = 0.8    
+    beta  = 0.1 
 
     error_a =(math.atan2( goal_y-robot_y ,goal_x-robot_x)) - robot_a
     
