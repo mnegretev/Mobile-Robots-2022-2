@@ -10,6 +10,7 @@
 #
 
 from cmath import pi
+from threading import local
 import rospy
 import tf
 import math
@@ -71,12 +72,18 @@ def follow_path(path):
     # The publisher for the twist message is already declared as 'pub_cmd_vel'
     # You can use the following steps to perform the path tracking:
     #
+    tol = 0.01
     # Set local goal point as the first point of the path
+    [local_goal_x , local_goal_y]   = path[0]
     # Set global goal point as the last point of the path
+    [global_goal_x , global_goal_y] = path[-1]
     # Get robot position with [robot_x, robot_y, robot_a] = get_robot_pose(listener)
+    [robot_x, robot_y, robot_a] = get_robot_pose(listener)
     # Calculate global error as the magnitude of the vector from robot pose to global goal point
+    global_error = math.sqrt((global_goal_x-robot_x)**2 + (global_goal_y-robot_y)**2)
     # Calculate local  error as the magnitude of the vector from robot pose to local  goal point
-    #
+    local_error = math.sqrt((local_goal_x-robot_x)**2 + (local_goal_y-robot_y)**2) 
+
     # WHILE global error > tol and not rospy.is_shutdown() #This keeps the program aware of signals such as Ctrl+C
     #     Calculate control signals v and w and publish the corresponding message
     #     loop.sleep()  #This is important to avoid an overconsumption of processing time
@@ -85,9 +92,35 @@ def follow_path(path):
     #     If local error is less than 0.3 (you can change this constant)
     #         Change local goal point to the next point in the path
     #     Calculate global error
+
+    counter = 0
+
+    # Define state machine
+    while global_error > tol and not rospy.is_shutdown():
+        #Calculate control signals v and w and publish the corresponding message
+        control_result = calculate_control(robot_x,robot_y,robot_a,local_goal_x,local_goal_y)
+        #Sending v and w
+        pub_cmd_vel.publish(control_result)
+        loop.sleep()
+        #Volviendo a calcular errores y posiciones
+        [robot_x, robot_y, robot_a] = get_robot_pose(listener)
+        local_error = math.sqrt((local_goal_x-robot_x)**2 + (local_goal_y-robot_y)**2) 
+        if local_error < 0.3:
+            counter = counter + 1
+            # Se verifica si se llego al ultimo punto del path
+            if counter == len(path):
+                counter = len(path)-1
+            # Se define un nuevo "local_goal"
+            [local_goal_x , local_goal_y]   = path[0]
+
+        # Calculando error global 
+        global_error = math.sqrt((global_goal_x-robot_x)**2 + (global_goal_y-robot_y)**2)
+
     # Send zero speeds (otherwise, robot will keep moving after reaching last point)
+
     # Publish a 'True' using the pub_goal_reached publisher
-    #
+    #pub_goal_reached.publish("True")
+
     return
     
 def callback_global_goal(msg):
