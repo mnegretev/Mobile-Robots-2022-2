@@ -37,10 +37,10 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # v and w are the linear and angular speeds taken as input signals
     # and v_max, w_max, alpha and beta, are tunning constants.
 
-    v_max = 1
-    w_max = 1
-    alpha = 0.2
-    beta  = 0.2
+    v_max = 0.4
+    w_max = 0.5
+    alpha = 0.1
+    beta  = 0.1
 
     # calculing angle error
     # global error - robot angle
@@ -49,10 +49,10 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     #Adjust angle error
     #Domain [-pi,pi]
 
-    if error_a > math.pi():
-        error_a = error_a - 2*math.pi()
-    elif error_a < (-math.pi()):
-        error_a = error_a + 2*math.pi()
+    if error_a > math.pi:
+        error_a = error_a - 2*math.pi
+    elif error_a < (-math.pi):
+        error_a = error_a + 2*math.pi
 
     v = v_max*math.exp(-error_a*error_a/alpha)
     w = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
@@ -111,15 +111,19 @@ def follow_path(path):
             if counter == len(path):
                 counter = len(path)-1
             # Se define un nuevo "local_goal"
-            [local_goal_x , local_goal_y]   = path[0]
+            [local_goal_x , local_goal_y] = path[counter]
 
         # Calculando error global 
         global_error = math.sqrt((global_goal_x-robot_x)**2 + (global_goal_y-robot_y)**2)
 
     # Send zero speeds (otherwise, robot will keep moving after reaching last point)
+    stop_msg = Twist()
+    stop_msg.linear.x = 0
+    stop_msg.angular.z = 0
+    pub_cmd_vel.publish(stop_msg)
 
     # Publish a 'True' using the pub_goal_reached publisher
-    #pub_goal_reached.publish("True")
+    pub_goal_reached.publish(True)
 
     return
     
