@@ -18,7 +18,7 @@ from nav_msgs.srv import GetPlan, GetPlanRequest
 from custom_msgs.srv import SmoothPath, SmoothPathRequest
 from geometry_msgs.msg import Twist, PoseStamped, Pose, Point
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "SANJUAN ALDAPE"
 
 pub_goal_reached = None
 pub_cmd_vel = None
@@ -42,7 +42,24 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # and return it (check online documentation for the Twist message).
     # Remember to keep error angle in the interval (-pi,pi]
     #
-    
+    #Constantes para el modelo del control
+    alpha = 0.1
+    beta = 0.1
+    #Cosntantes de velocidad
+    v_max = 0.3
+    w_max = 0.5
+    #Error para el angulo
+    error_a = (math.atan2(goal_y - robot_y, goal_x - robot_x)) - robot_a
+    if(error_a > math.pi):
+	error_a = error_a-2*math.pi
+    if(error_a < -math.pi):
+	error_a = error_a+2*math.pi
+    #Leyes de control
+    v = v_max*math.exp(-error_a*error_a/Alpha)
+    w = w_max*(2/(1+math.exp(-error_a/Beta))-1)
+
+    cmd_vel.linear.x = v
+    cmd_vel.angular.z = w
     return cmd_vel
 
 def follow_path(path):
@@ -70,6 +87,26 @@ def follow_path(path):
     # Send zero speeds (otherwise, robot will keep moving after reaching last point)
     # Publish a 'True' using the pub_goal_reached publisher
     #
+    idx = 0
+    [local_x, local_y] = path[idx]  #Primer elemento
+    [global_x, global_y] = path[-1]  #Ultimo elemento
+    [robot_x, robot_y, robot_a] = get_robot_pose(listener) #Posicion del robot
+    global_error = math.sqrt((global_x - robot_x)**2 + (global_y - robot_y)**2) 
+    local_error = math.sqrt((local_x - robot_x)**2 + (local_y - robot_y)**2)
+    
+    while global_error > 0.1 and not rospy.is_shutdown():      
+	pub_cmd_vel.publish(calculate_control(robot_x, robot_y, robot_a, local_x, local_y)) #Calcula el control
+        loop.sleep()
+        [robot_x, robot_y, robot_a] = get_robot_pose(listener)
+        local_error = math.sqrt((local_x - robot_x)**2 + (local_y - robot_y)**2)
+        if local_error < 0.3:
+            idx+=1
+            if idx >= len(path):
+                idx = len(path) - 1
+            [local_x, local_y] = path[idx]
+        global_error = math.sqrt((global_x - robot_x)**2 + (global_y - robot_y)**2)
+    pub_cmd_vel.publish(Twist())
+    
     return
     
 def callback_global_goal(msg):
