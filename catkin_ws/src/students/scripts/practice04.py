@@ -18,7 +18,7 @@ from nav_msgs.srv import GetPlan, GetPlanRequest
 from custom_msgs.srv import SmoothPath, SmoothPathRequest
 from geometry_msgs.msg import Twist, PoseStamped, Pose, Point
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "carrillo_salazar"
 
 pub_goal_reached = None
 pub_cmd_vel = None
@@ -27,11 +27,16 @@ listener    = None
 
 def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     cmd_vel = Twist()
-    
+    alpha = 0.1
+    beta  = 0.1
+    w_max = 1.0
+    v_max = 0.8    
+
     #
     # TODO:
     # Implement the control law given by:
     #
+    error_a =(math.atan2( goal_y-robot_y ,goal_x-robot_x)) - robot_a
     # v = v_max*math.exp(-error_a*error_a/alpha)
     # w = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
     #
@@ -42,7 +47,17 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # and return it (check online documentation for the Twist message).
     # Remember to keep error angle in the interval (-pi,pi]
     #
+    if error_a > math.pi:
+	error_a = error_a-2*math.pi
+    elif error_a <= -math.pi:
+	error_a = error_a + 2*math.pi
+ 
+    v = v_max* math.exp(-error_a*error_a/ alpha)
+    w = w_max*(2/(1+math.exp(-error_a/beta))-1)
     
+    cmd_vel.linear.x = v
+    cmd_vel.angular.z = w
+
     return cmd_vel
 
 def follow_path(path):
@@ -53,23 +68,39 @@ def follow_path(path):
     # The publisher for the twist message is already declared as 'pub_cmd_vel'
     # You can use the following steps to perform the path tracking:
     #
+    idx = 0
     # Set local goal point as the first point of the path
+    [local_x,local_y] = path [idx]
     # Set global goal point as the last point of the path
+    [global_x,global_y] = path[-1]
     # Get robot position with [robot_x, robot_y, robot_a] = get_robot_pose(listener)
+    [robot_x,robot_y,robot_a] = get_robot_pose(listener)
     # Calculate global error as the magnitude of the vector from robot pose to global goal point
+    global_error = math.sqrt((global_x-robot_x)**2 + (global_y-robot_y)**2)
     # Calculate local  error as the magnitude of the vector from robot pose to local  goal point
     #
+    local_error = math.sqrt((local_x-robot_x)**2+ (local_y-robot_y)**2)
     # WHILE global error > tol and not rospy.is_shutdown() #This keeps the program aware of signals such as Ctrl+C
+    while global_error > 0.1 and not rospy.is_shutdown():
     #     Calculate control signals v and w and publish the corresponding message
+      	pub_cmd_vel.publish(calculate_control(robot_x, robot_y, robot_a, local_x, local_y))	
     #     loop.sleep()  #This is important to avoid an overconsumption of processing time
+      	loop.sleep()
     #     Get robot position
+      	[robot_x,robot_y,robot_a] = get_robot_pose(listener)
     #     Calculate local error
+      	local_error = math.sqrt((local_x-robot_x)**2+ (local_y-robot_y)**2)
     #     If local error is less than 0.3 (you can change this constant)
+    
+      	idx= min(idx+1, len(path)-1) if local_error < 0.3 else idx
     #         Change local goal point to the next point in the path
+      	[local_x,local_y] = path[idx]
     #     Calculate global error
+      	global_error = math.sqrt((global_x-robot_x)**2+ (global_y-robot_y)**2)
     # Send zero speeds (otherwise, robot will keep moving after reaching last point)
-    # Publish a 'True' using the pub_goal_reached publisher
     #
+    pub_cmd_vel.publish(Twist())
+
     return
     
 def callback_global_goal(msg):
