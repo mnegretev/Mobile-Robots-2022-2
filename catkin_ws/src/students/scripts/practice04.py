@@ -18,7 +18,7 @@ from nav_msgs.srv import GetPlan, GetPlanRequest
 from custom_msgs.srv import SmoothPath, SmoothPathRequest
 from geometry_msgs.msg import Twist, PoseStamped, Pose, Point
 
-NAME = "Villanueva Aragón Gabriel"
+NAME = "Villanueva Aragon Gabriel"
 
 pub_goal_reached = None
 pub_cmd_vel = None
@@ -33,8 +33,8 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # Implement the control law given by:
 
     error_a=(math.atan2(goal_y-robot_y,goal_x-robot_x)-robot_a+math.pi)%(2*math.pi)-math.pi
-    v = v_max*math.exp(-error_a*error_a/alpha)
-    w = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
+    v = 0.8*math.exp(-error_a*error_a/alpha)
+    w = 1*(2/(1 + math.exp(-error_a/beta)) - 1)
     #
     # where error_a is the angle error and
     # v and w are the linear and angular speeds taken as input signals
@@ -72,7 +72,7 @@ def follow_path(path):
     i=0
     while global_error > 0.2 and not rospy.is_shutdown(): #This keeps the program aware of signals such as Ctrl+C
     #     Calculate control signals v and w and publish the corresponding message
-	pub_goal_publish(calculate_control(robot_x, robot_y, robot_a, local_goal_x, local_goal_y))
+	pub_cmd_vel.publish(calculate_control(robot_x, robot_y, robot_a, local_goal_x, local_goal_y))
     #     loop.sleep()  #This is important to avoid an overconsumption of processing time
         loop.sleep()
     #     Get robot position
