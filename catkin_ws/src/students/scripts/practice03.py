@@ -45,10 +45,10 @@ def smooth_path(Q, alpha, beta):
     while Var>tol and steps <100000:
     	for i in range (1,len(nabla)-1):
             nabla[i]=beta*(P[i]-Q[i])+alpha*(2*P[i]-P[i-1]-P[i+1])
-    P=P-epsilon*nabla
-    steps+=1
-    print "Parece que funciona"
+        P=P-epsilon*nabla
+        steps+=1
     return P
+print "Parece que funciona"
 
 def callback_smooth_path(req):
     alpha = rospy.get_param('/path_planning/smoothing_alpha')
