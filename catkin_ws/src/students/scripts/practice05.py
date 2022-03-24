@@ -41,6 +41,35 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # and return it (check online documentation for the Twist message).
     # Remember to keep error angle in the interval (-pi,pi]
     #    
+    alpha = 0.1
+    beta = 0.1
+    error_a = (math.atan2(goal_y-robot_y, goal_x-robot_x)) - robot_a
+
+    # Poner maximo 1[m/s] y 1[rad/seg]
+    wm = 0.8
+    vm = 0.6
+
+    # EL robot solo se mueve linealmente en x y angularmente en z. 
+  
+    v = vm*math.exp(-error_a*error_a/alpha)
+    w = wm*(2/(1 + math.exp(-error_a/beta)) - 1)
+    
+    # where error_a is the angle error and
+    # v and w are the linear and angular speeds taken as input signals
+    # and v_max, w_max, alpha and beta, are tunning constants.
+    # Store the resulting v and w in the Twist message cmd_vel
+    # and return it (check online documentation for the Twist message).
+    # Remember to keep error angle in the interval (-pi,pi]
+    #
+
+    if error_a > math.pi:
+    	error_a = error_a - 2*math.pi
+    elif error_a <= -math.pi:
+	error_a = error_a + 2*math.pi
+
+    cmd_vel.linea.x = v
+    cmd_vel.angular.z = w
+    
     return cmd_vel
 
 def attraction_force(robot_x, robot_y, goal_x, goal_y):
@@ -50,9 +79,12 @@ def attraction_force(robot_x, robot_y, goal_x, goal_y):
     # Return a tuple of the form [force_x, force_y]
     # where force_x and force_y are the X and Y components
     # of the resulting attraction force w.r.t. map.
-    #
     
-    return [0, 0]
+    alpha = 0.1
+    Fatt_x = alpha*((robot_x-goal_x) / (math.sqrt((robot_x-goal_x)**2 + (robot_y-goal_y)**2)))
+    Fatt_y = alpha*((robot_y-goal_y) / (math.sqrt((robot_x-goal_x)**2 + (robot_y-goal_y)**2)))
+    
+    return [Fatt_x, Fatt_y]
 
 def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     #
@@ -65,8 +97,18 @@ def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     # Return a tuple of the form [force_x, force_y]
     # where force_x and force_y are the X and Y components
     # of the resulting rejection force w.r.t. map.
-    #
-    return [0, 0]
+    
+    beta = 0.1
+    d0 = 0.1
+    d = laser_readings[0]   
+
+    if d < d0:
+        Fatt_x = beta*(math.sqrt(1/d - 1/d0))*((robot_x) / d)
+        Fatt_y = beta*(math.sqrt(1/d - 1/d0))*((robot_y) / d) 
+    else:
+	Fatt_x = 0
+	Fatt_y = 0
+    return [Fatt_x, Fatt_y]
 
 def callback_pot_fields_goal(msg):
     goal_x = msg.pose.position.x

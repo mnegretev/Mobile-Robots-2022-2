@@ -21,33 +21,30 @@ def get_inflated_map(static_map, inflation_cells):
     print("Inflating map by " + str(inflation_cells) + " cells")
     inflated = numpy.copy(static_map)
     [height, width] = static_map.shape
-
-    ri=inflation_cells                        	#Se asigna el radio de inflacion a una variable.
-    for i in range(0,height,1):   	      	#Se hace el recorrido de la matriz. 
-      	for j in range(0,width,1):
-	    if inflated[i,j]>50:  	     	#Si el valor que tiene la matriz es mayor a 50 se considera un lugar ocupado.
-	        for k1 in range(-ri,ri,1):    	#Se recorre alrededor de ese lugar y se procede a inflar el mapa.
-		    for k2 in range(-ri,ri,1):
-		        c=ri-max(abs(k1),abs(k2))   
-			inflated[i+k1,j+k2]=50         #Con el valor de 50 se muestra gris la parte inflada.
-
+    for i in range (height):
+        for j in range(width):
+            if static_map[i, j] >50:
+                for k1 in range (i-inflation_cells, i+inflation_cells+1):
+                    for k2 in range (j-inflation_cells, j + inflation_cells + 1):
+                        inflated[k1, k2] = 100 #static_map[i, j]
     return inflated
+
 
 def get_cost_map(static_map, cost_radius):
     if cost_radius > 20:
         cost_radius = 20
-    print "Calculating cost map with " +str(cost_radius) + " cells"
+    print "Calculanting cost map with " + str(cost_radius) + "cells"
     cost_map = numpy.copy(static_map)
     [height, width] = static_map.shape
 
-    for i in range(0,height,1):                 #Se hace el recorrido de la matriz. 
-      	for j in range(0,width,1):
-	    if static_map[i,j]>49:              #Con un valor mayor a 49 ya aseguramos que la casilla pertenece al mapa inflado.
-	        for x in range(i-cost_radius,i+cost_radius,1):	      #Se recorre alrededor de la celda ocupada o inflada.
-		    for y in range(j-cost_radius,j+cost_radius,1):      
-		        costo=cost_radius-max(abs(x-i),abs(y-j))      #Se calcula el costo que va de 0 a 9
-		        cost_map[x,y]=max(costo,cost_map[x,y])        #Se asigna el costo mas alto entre en anterior y el actual.
-    			
+    for i in range(height):
+        for j in range(width):
+            if static_map[i,j]>50:
+                for k1 in range(-cost_radius,cost_radius + 1):
+                    for k2 in range(-cost_radius,cost_radius + 1):
+                        cost=cost_radius-max(abs(k1), abs(k2))
+                        if cost > cost_map[i+k1, j+k2]:
+                            cost_map[i+k1, j+k2] = max(cost+1, cost_map[i+k1, j+k2])
     return cost_map
 
 def callback_inflated_map(req):
