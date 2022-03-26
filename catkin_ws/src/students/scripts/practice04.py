@@ -31,7 +31,8 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     #
     # TODO:
     # Implement the control law given by:
-
+    alpha=0.6
+    beta=0.6
     error_a=(math.atan2(goal_y-robot_y,goal_x-robot_x)-robot_a+math.pi)%(2*math.pi)-math.pi
     v = 0.8*math.exp(-error_a*error_a/alpha)
     w = 1*(2/(1 + math.exp(-error_a/beta)) - 1)
@@ -45,7 +46,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     #
     
     cmd_vel.linear.x=v
-    cmd_vel.linear.angular.z=w
+    cmd_vel.angular.z=w
 
     return cmd_vel
 
@@ -81,8 +82,10 @@ def follow_path(path):
 	local_error=math.sqrt((local_goal_x-robot_x)**2+(local_goal_y-robot_y)**2)
     #     If local error is less than 0.3 (you can change this constant)
 	if local_error<0.3:
+		
     #         Change local goal point to the next point in the path
 		local_goal_x,local_goal_y=path[i+1]
+		i=i+1;
     #     Calculate global error
 	global_error=math.sqrt((global_goal_x-robot_x)**2+(global_goal_y-robot_y)**2)
     # Send zero speeds (otherwise, robot will keep moving after reaching last point)
