@@ -19,7 +19,7 @@ from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from sensor_msgs.msg import LaserScan
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "Valle Rodriguez Andrea"
 
 listener    = None
 pub_cmd_vel = None
@@ -44,7 +44,15 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     return cmd_vel
 
 def attraction_force(robot_x, robot_y, goal_x, goal_y):
-    #
+	
+	q = (robot_x,robot_y)
+	q_g = (goal_v,goal_y)
+	mag = numpy.linalg.norm(q_g - q)
+	tol = 0.00001
+	alpha = 1
+	while mag > tol:
+		F_att = alpha*((q-q_g)/mag)
+
     # TODO:
     # Calculate the attraction force, given the robot and goal positions.
     # Return a tuple of the form [force_x, force_y]
@@ -55,7 +63,14 @@ def attraction_force(robot_x, robot_y, goal_x, goal_y):
     return [0, 0]
 
 def rejection_force(robot_x, robot_y, robot_a, laser_readings):
-    #
+	q = (robot_x,robot_y)
+	q_g = (goal_v,goal_y)
+	mag = numpy.linalg.norm(q_g - q)
+	tol = 0.00001
+	beta = 2
+	while mag > tol:
+		for 		
+		F_rej=
     # TODO:
     # Calculate the total rejection force given by the average
     # of the rejection forces caused by each laser reading.
