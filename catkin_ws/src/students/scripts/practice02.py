@@ -66,7 +66,8 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
 		previous[nr,nc] = [r,c]
 	    if not in_open_list[nr,nc]:
 		heapq.heappush(OL,(f,[nr,nc]))
-
+		in_open_list[nr, nc] = True
+ 
     if [r,c] != [goal_r,goal_c]:
 	print("No se encontro la ruta")
 	return []

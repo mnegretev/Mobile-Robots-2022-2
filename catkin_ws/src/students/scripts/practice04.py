@@ -36,6 +36,11 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     vm = 0.6
 
     # EL robot solo se mueve linealmente en x y angularmente en z. 
+
+    if error_a > math.pi:
+    	error_a = error_a - 2*math.pi
+    elif error_a <= -math.pi:
+	error_a = error_a + 2*math.pi
   
     v = vm*math.exp(-error_a*error_a/alpha)
     w = wm*(2/(1 + math.exp(-error_a/beta)) - 1)
@@ -47,13 +52,9 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # and return it (check online documentation for the Twist message).
     # Remember to keep error angle in the interval (-pi,pi]
     #
+    ####### error_a = 
 
-    if error_a > math.pi:
-    	error_a = error_a - 2*math.pi
-    elif error_a <= -math.pi:
-	error_a = error_a + 2*math.pi
-
-    cmd_vel.linea.x = v
+    cmd_vel.linear.x = v
     cmd_vel.angular.z = w
     
     return cmd_vel
@@ -82,28 +83,29 @@ def follow_path(path):
     global_error = math.sqrt((g_x - robot_x)**2 + (g_y - robot_y)**2)    
 
     # Calculate local  error as the magnitude of the vector from robot pose to local  goal point
-    local_error = marh.sqrt((l_x - robot_x)**2 + (l_y - robot_y)**2)   
+    local_error = math.sqrt((l_x - robot_x)**2 + (l_y - robot_y)**2)   
 
     while global_error > 0.1 and not rospy.is_shutdown():
-	pub_cmd_vel.publish(calculate,control(robot_x, robot_y, robot_a, l_x, l_y))
+	pub_cmd_vel.publish(calculate_control(robot_x, robot_y, robot_a, l_x, l_y))
 
     #     Calculate control signals v and w and publish the corresponding message
-    loop.sleep()  #This is important to avoid an overconsumption of processing time
+    	loop.sleep()  #This is important to avoid an overconsumption of processing time
     
     #Get robot position
-    [robot_x, robot_y, robot_a] = get_robot_pose(listener)
+    	[robot_x, robot_y, robot_a] = get_robot_pose(listener)
 
     #     Calculate local error
-    local_error = marh.sqrt((l_x - robot_x)**2 + (l_y - robot_y)**2)
+    	local_error = math.sqrt((l_x - robot_x)**2 + (l_y - robot_y)**2)
 
     #     If local error is less than 0.3 (you can change this constant)
-    idx = min(idx+1, len(path)-1) if local_error < 0.3 else idx
-
+   	idx = min(idx+1, len(path)-1) if local_error < 0.3 else idx
+	
     #     Change local goal point to the next point in the path
-    [l_x, l_y] = path[idx]
+   	[l_x, l_y] = path[idx]
 
     #     Calculate global error
-    global_error = math.sqrt((g_x - robot_x)**2 + (g_y - robot_y)**2)  
+  	  
+        global_error = math.sqrt((g_x - robot_x)**2 + (g_y - robot_y)**2)  
 
     # Send zero speeds (otherwise, robot will keep moving after reaching last point)
 
