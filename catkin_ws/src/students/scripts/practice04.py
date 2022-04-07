@@ -27,11 +27,11 @@ listener    = None
 
 def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     cmd_vel = Twist()
+    alfa,beta=1
     v_max=1
     w_max=2
-    a=math.atan2(robot_y,robot_x)
     ag=math.atan2(goal_y-robot_y,goal_x-robot_x)
-    error_a=ag-a
+    error_a=ag-robot_a
     if error_a> math.pi:
 	error_a=error_a - 2*math.pi 
     if error_a<-math.pi:
