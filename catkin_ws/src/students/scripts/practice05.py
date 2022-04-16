@@ -4,7 +4,7 @@
 # PRACTICA 5 - EVASION DE OBSTACULOS POR CAMPOS POTENCIALES
 #
 # Instructions:
-# Complete el codigo para implementar la evacion de obstaculos por campos potenciales
+# Complete el codigo para implementar la evitacion de obstaculos por campos potenciales
 # usando la tecnica de campos atractivos y repulsivos.
 # Sintonice las constantes alfa y beta para obtener un movimiento suave. 
 #
@@ -57,7 +57,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     cmd_vel_msg.linear.x = v
     cmd_vel_msg.angular.z = w  
 
-    return cmd_vel
+    return cmd_vel_msg
 
 def attraction_force(robot_x, robot_y, goal_x, goal_y):
     #
@@ -79,7 +79,7 @@ def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     # Calcule la fuerza de rechazo total dada por el promedio
     # de las fuerzas de rechazo causadas por cada lectura de laser.
     n = len(laser_readings)
-    betha = 0.4
+    betha = 1.6
     d0 = 1  # 1 metro
     frx, fry = 0, 0  # Campo repulsivo en x y y
     # laser_readings es una matriz donde cada elemento es una tupla [distancia, angulo]
@@ -119,7 +119,7 @@ def callback_pot_fields_goal(msg):
     # Establecer epsilon (0.5 es un buen comienzo)
     epsilon = 0.5
     # Establecer tolerancia (0.1 es un buen comienzo)
-    tol = 0.001
+    tol = 0.1
     # Obtener la posicion del robot respecto al mapa llamando a 
     robot_x, robot_y, robot_a = get_robot_pose(listener)
     # Calcular la distancia al objetivo como 
@@ -147,10 +147,15 @@ def callback_pot_fields_goal(msg):
 
         while error_local > tol and not rospy.is_shutdown():
             print("dentro de segundo while")
+            # Actualice la posicion del robot llamando a 
+            robot_x, robot_y, robot_a = get_robot_pose(listener)
+
             # Calcule las seniales de control y le pasamos coordenadas de meta local
             msg_cmd_vel = calculate_control(robot_x, robot_y, robot_a, x_lg, y_lg)
             # Envie las seniales de control a la base movil llamando a 
+            print("msg_cmd_vel", msg_cmd_vel)
             pub_cmd_vel.publish(msg_cmd_vel)
+            
 
             # Llame a draw_force_markers(robot_x, robot_y, afx, afy, rfx, rfy, fx, fy, pub_markers) para dibujar todas las fuerzas
             draw_force_markers(robot_x, robot_y, fax, fay, frx, fry, Fx, Fy, pub_markers)
@@ -165,7 +170,7 @@ def callback_pot_fields_goal(msg):
         robot_x, robot_y, robot_a = get_robot_pose(listener)
         # Recalcular la distancia a la posicion de destino
         error_global = math.sqrt((goal_x - robot_x)**2 + (goal_y - robot_y)**2)
-        error_local = float(math.inf)
+        error_local = math.sqrt((x_lg - robot_x)**2 + (y_lg - robot_y)**2)
     
     # Publique una velocidad cero (para detener el robot despues de alcanzar el punto objetivo)
     msg_cmd_vel.linear.x = 0
