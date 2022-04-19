@@ -42,7 +42,7 @@ def smooth_path(Q, alpha, beta):
     
     steps=0
     Var=numpy.linalg.norm(nabla)
-    while Var>tol and steps <100000:
+    while numpy.linalg.norm(nabla)>tol and steps <100000:
     	for i in range (1,len(nabla)-1):
             nabla[i]=beta*(P[i]-Q[i])+alpha*(2*P[i]-P[i-1]-P[i+1])
         P=P-epsilon*nabla

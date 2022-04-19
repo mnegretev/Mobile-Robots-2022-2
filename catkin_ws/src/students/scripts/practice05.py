@@ -54,7 +54,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     if robot_dir < 0:
         robot_dir += 2*math.pi
 
-    error_a = mov_dir - robot_dir
+    error_a = m_dir - robot_dir
     if error_a > math.pi:
         error_a -= 2*math.pi
     if error_a < -math.pi:
@@ -135,6 +135,7 @@ def callback_pot_fields_goal(msg):
     #     Update robot position by calling robot_x, robot_y, robot_a = get_robot_pose(listener)
     #     Recalculate distance to goal position
     #  Publish a zero speed (to stop robot after reaching goal point)
+    
     epsilon = 0.5
     tolerance = 0.1
     [robot_x, robot_y, robot_a] = get_robot_pose(listener)  
