@@ -18,7 +18,7 @@ from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import PointStamped, Point
 from custom_msgs.srv import FindObject, FindObjectResponse
 
-NAME = "FULL_NAME"
+NAME = "SANJUAN ALDAPE"
 
 def segment_by_color(img_bgr, points, obj_name):
     #
@@ -37,8 +37,30 @@ def segment_by_color(img_bgr, points, obj_name):
     #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
     #   the pixel in the center of the image.
     #
-    
-    return [0,0,0,0,0]
+    img_hsv=cv2.cvtColor(img_bgr,cv2.COLOR_BGR2HSV) 
+    img_bin=cv2.inRange(img_hsv,numpy.array([25,50,50]),numpy.array([32,255,255])) 
+    indice=cv2.findNonZero(img_bin)
+    coordenadas_xy=cv2.mean(indice)
+    [x,y,z,i] = [0,0,0,0]
+    for [[c,r]] in indice:
+        Xaux=points[r,c][0]
+        Yaux=points[r,c][1]
+        Zaux=points[r,c][2]
+        if math.isnan(Xaux) or math.isnan(Yaux) or math.isnan(Zaux):
+		continue
+	[x,y,z,i] = [x+Xaux, y+Yaux, z+Zaux,i+1]
+    if i>0:
+    	x = x/i 
+	y = y/i 
+	z = z/i
+    else: 
+	x=0
+	y=0
+	z=0
+    #print(img_bgr[240][320])
+    #print(points[0][0])
+    #return [0,0,0,0,0]
+    return [coordenadas_xy[0],coordenadas_xy[1],x,y,z]
 
 def callback_find_object(req):
     global pub_point, img_bgr
