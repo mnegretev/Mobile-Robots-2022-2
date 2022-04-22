@@ -18,7 +18,7 @@ from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import PointStamped, Point
 from custom_msgs.srv import FindObject, FindObjectResponse
 
-NAME = "FULL_NAME"
+NAME = "Granados Vargas Nestor Yahir"
 
 def segment_by_color(img_bgr, points, obj_name):
     #
@@ -29,16 +29,25 @@ def segment_by_color(img_bgr, points, obj_name):
     # - Change color space from RGB to HSV.
     #   Check online documentation for cv2.cvtColor function
     # - Determine the pixels whose color is in the selected color range.
+    img_hsv=cv2.cvtColor(img_bgr,cv2.COLOR_BGR2HSV)
     #   Check online documentation for cv2.inRange
+    img_bin=cv2.inRange(img_hsv,numpy.array([25,200,50]),numpy.array([35,255,255]))
     # - Calculate the centroid of all pixels in the given color range (ball position).
     #   Check online documentation for cv2.findNonZero and cv2.mean
+    idx=cv2.findNonZero(img_bin)
+    mean_coords=cv2.mean(idx)
+    
     # - Calculate the centroid of the segmented region in the cartesian space
     #   using the point cloud 'points'. Use numpy array notation to process the point cloud data.
     #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
     #   the pixel in the center of the image.
     #
+    for[[c,r]] in idx:
+       x,y,z=x+points[r,c][0],y+points[r,c][1],z+points[r,c][2]
+    x,y,z=x/len(idx),y/len(idx),z/len(idx)
     
-    return [0,0,0,0,0]
+    
+    return [mean_coords [0],mean_coords[1],x,y,z]
 
 def callback_find_object(req):
     global pub_point, img_bgr
