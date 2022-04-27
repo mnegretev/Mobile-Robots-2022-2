@@ -52,8 +52,10 @@ def segment_by_color(img_bgr, points, obj_name):
     #
     x, y, z = 0, 0, 0
 
-    for [[r,c]] in nz:
+    for m in nz:
         #  Verificacion de nulos
+        #  findNonZero te lo da en formato c,r
+        [[c,r]] = m
         if math.isnan(points[r,c][0]) or math.isnan(points[r, c][1]) or math.isnan(points[r, c][2]):
             pass
         else:
