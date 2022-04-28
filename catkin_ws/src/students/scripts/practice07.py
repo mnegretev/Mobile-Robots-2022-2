@@ -18,7 +18,7 @@ from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import PointStamped, Point
 from custom_msgs.srv import FindObject, FindObjectResponse
 
-NAME = "FULL_NAME"
+NAME = "Alejandra_Elizabeth_Toriz_Poblano"
 
 def segment_by_color(img_bgr, points, obj_name):
     #
@@ -38,7 +38,41 @@ def segment_by_color(img_bgr, points, obj_name):
     #   the pixel in the center of the image.
     #
     
-    return [0,0,0,0,0]
+    
+    LimSup = [0]
+    LimInf = [0]
+    
+    if obj_name == "pringles":
+        LimSup = [35, 255, 255]
+        LimInf = [25, 50, 50]
+    else:
+        LimSup = [20, 255, 255]
+        LimInf = [10, 200, 50]
+   
+    ImHSV = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+    
+    ImBIN = cv2.inRange(ImHSV, numpy.array(LimSup), numpy.array(LimInf))
+    
+    NoZero = cv2.findNonZero(ImBIN)
+    Centroide = cv2.mean(NoZero)
+
+    x, y, z = 0, 0, 0
+
+    for i in NoZero:
+        [[r,c]] = i
+        if math.isnan(points[r,c][0]) or math.isnan(points[r,c][1]) or math.isnan(points[r,c][2]):
+            pass
+        else:
+            x = x + points[r,c][0]
+            y = y + points[r,c][1]
+            z = z + points[r,c][2]
+
+    x = x/len(NoZero)
+    y = y/len(NoZero)
+    z = z/len(NoZero)
+
+    return [Centroide[0], Centroide[1], x, y, z]    
+
 
 def callback_find_object(req):
     global pub_point, img_bgr
