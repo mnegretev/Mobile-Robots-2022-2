@@ -18,27 +18,36 @@ from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import PointStamped, Point
 from custom_msgs.srv import FindObject, FindObjectResponse
 
-NAME = "FULL_NAME"
+NAME = "jose_armando_carrillo_salazar"
 
 def segment_by_color(img_bgr, points, obj_name):
-    #
-    # TODO:
-    # - Assign lower and upper color limits according to the requested object:
-    #   If obj_name == 'pringles': [25, 50, 50] - [35, 255, 255]
-    #   otherwise                : [10,200, 50] - [20, 255, 255]
-    # - Change color space from RGB to HSV.
-    #   Check online documentation for cv2.cvtColor function
-    # - Determine the pixels whose color is in the selected color range.
-    #   Check online documentation for cv2.inRange
-    # - Calculate the centroid of all pixels in the given color range (ball position).
-    #   Check online documentation for cv2.findNonZero and cv2.mean
-    # - Calculate the centroid of the segmented region in the cartesian space
-    #   using the point cloud 'points'. Use numpy array notation to process the point cloud data.
-    #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
-    #   the pixel in the center of the image.
-    #
-    
-    return [0,0,0,0,0]
+     
+    LimiteSuperior = [0]
+    LimiteInferior = [0]
+    if obj_name == "pringles":
+        LimiteSuperior = [35, 255, 255]
+        LimiteInferior = [25, 50, 50]
+    else:
+        LimiteSuperior = [20, 255, 255]
+        LimiteInferior = [10, 200, 50]
+    Img_hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV) 
+    Img_b = cv2.inRange(Img_hsv, numpy.array(LimiteSuperior), numpy.array(LimiteInferior))
+    DifCero = cv2.findNonZero(Img_b)
+    CoorCentroide = cv2.mean(DifCero)
+    x, y, z = 0, 0, 0
+    for i in DifCero:
+        [[r,c]] = i
+        if math.isnan(points[r,c][0]) or math.isnan(points[r,c][1]) or math.isnan(points[r,c][2]):
+            pass
+        else:
+            x = x + points[r,c][0]
+            y = y + points[r,c][1]
+            z = z + points[r,c][2]
+    x = x/len(DifCero)
+    y = y/len(DifCero)
+    z = z/len(DifCero)
+
+    return [CoorCentroide[0], CoorCentroide[1], x, y, z]
 
 def callback_find_object(req):
     global pub_point, img_bgr
