@@ -19,7 +19,7 @@ import urdf_parser_py.urdf
 from geometry_msgs.msg import PointStamped
 from custom_msgs.srv import *
 
-NAME = "FULL_NAME"
+NAME = "GONZALEZ_JIMENEZ_ITZEL"
 
 def get_model_info():
     global joints, transforms
@@ -174,6 +174,7 @@ def main():
     print("PRACTICE 08" + NAME)
     rospy.init_node("ik_geometric")
     get_model_info()
+    # Se crean los servicios de cinematica inversa y directa de brazo izquierdo y derecho 
     rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematics, callback_la_ik_for_pose)
     rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematics, callback_ra_ik_for_pose)
     rospy.Service("/manipulation/la_direct_kinematics", ForwardKinematics, callback_la_fk)
