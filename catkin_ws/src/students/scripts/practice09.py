@@ -14,19 +14,19 @@ import numpy
 import rospy
 import rospkg
 
-NAME = "FULL_NAME"
+NAME = "FGONZALEZ_JIMENEZ_ITZEL"
 
 class NeuralNetwork(object):
     def __init__(self, layers, weights=None, biases=None):
         #
-        # The list 'layers' indicates the number of neurons in each layer.
-        # Remember that the first layer indicates the dimension of the inputs and thus,
-        # there is no bias vector fot the first layer.
-        # For this practice, 'layers' should be something like [784, n2, n3, ..., nl, 10]
-        # All weights and biases are initialized with random values. In each layer we have a matrix
-        # of weights where row j contains all the weights of the j-th neuron in that layer. For this example,
-        # the first matrix should be of order n2 x 784 and last matrix should be 10 x nl.
-        #
+        # La lista de 'capas' indica el número de neuronas en cada capa.
+        # Recuerde que la primera capa indica la dimensión de las entradas y por lo tanto,
+        # no hay vector de sesgo para la primera capa.
+        # Para esta práctica, 'capas' debería ser algo como [784, n2, n3, ..., nl, 10]
+        # Todos los pesos y sesgos se inicializan con valores aleatorios. En cada capa tenemos una matriz
+        # de pesos donde la fila j contiene todos los pesos de la j-ésima neurona en esa capa. Para este ejemplo,
+        # la primera matriz debe ser del orden n2 x 784 y la ultima matriz debe ser 10 x nl.
+        
         self.num_layers  = len(layers)
         self.layer_sizes = layers
         self.biases =[numpy.random.randn(y,1) for y in layers[1:]] if biases == None else biases
