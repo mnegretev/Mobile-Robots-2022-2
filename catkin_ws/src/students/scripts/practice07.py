@@ -24,21 +24,28 @@ def segment_by_color(img_bgr, points, obj_name):
     #
     # TODO:
     # - Assign lower and upper color limits according to the requested object:
-    #   If obj_name == 'pringles': [25, 50, 50] - [35, 255, 255]
-    #   otherwise                : [10,200, 50] - [20, 255, 255]
+    if obj_name == 'pringles': 
+    	low = [25, 50, 50]     # Minimum value of hue, saturation and value of pringles.
+        high = [35, 255, 255]  # Maximum value of hue, saturation and value of pringles.
+    else: 
+        low = [10,200, 50]     # Minimum value of hue, saturation and value of soda.
+	high = [20, 255, 255]  # Maximum value of hue, saturation and value of soda.
     # - Change color space from RGB to HSV.
-    #   Check online documentation for cv2.cvtColor function
+    image = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
     # - Determine the pixels whose color is in the selected color range.
-    #   Check online documentation for cv2.inRange
+    image_range = cv2.inRange(image, (low[0], low[1], low[2]), (high[0], high[1], high[2]))
     # - Calculate the centroid of all pixels in the given color range (ball position).
-    #   Check online documentation for cv2.findNonZero and cv2.mean
+    image_nonzeros = cv2.findNonZero(image_range)
+    center = cv2.mean(image_nonzeros)
     # - Calculate the centroid of the segmented region in the cartesian space
     #   using the point cloud 'points'. Use numpy array notation to process the point cloud data.
     #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
     #   the pixel in the center of the image.
+    x = points[center[0], center[1]][0]
+    y = points[center[0], center[1]][1]
     #
     
-    return [0,0,0,0,0]
+    return [1,center,x,y,0]
 
 def callback_find_object(req):
     global pub_point, img_bgr
