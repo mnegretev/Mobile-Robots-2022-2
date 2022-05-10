@@ -17,9 +17,10 @@ import tf.transformations as tft
 import numpy
 import urdf_parser_py.urdf
 from geometry_msgs.msg import PointStamped
+#from custom_msgs.msg import ArmConfiguration
 from custom_msgs.srv import *
 
-NAME = "FULL_NAME"
+NAME = "Granados Vargas Nestor Yahir"
 
 def get_model_info():
     global joints, transforms
@@ -63,9 +64,14 @@ def forward_kinematics(q, Ti, Wi):
     #     Check online documentation of these functions:
     #     http://docs.ros.org/en/jade/api/tf/html/python/transformations.html
     #
+    H = tft.identity_matrix()
+    for i in range(len(q)):
+	H = tft.concatenate_matrices(H, Ti[i], tft.rotation_matrix(q[i],Wi[i]))
+    H = tft.concatenate_matrices(H, ti[7])
     
-    x,y,z = 0,0,0  # Get xyz from resulting H
-    R,P,Y = 0,0,0  # Get RPY from resulting H
+    x,y,z = H[0,3],H[1,3],H[2,3]  # Get xyz from resulting H
+    R,P,Y = tft.euler_from_matrix(H)  # Get RPY from resulting H
+
     return numpy.asarray([x,y,z,R,P,Y])
 
 def jacobian(q, Ti, Wi):
@@ -96,6 +102,8 @@ def jacobian(q, Ti, Wi):
     qn = numpy.asarray([q,]*len(q)) + delta_q*numpy.identity(len(q))   # q_next as indicated above
     qp = numpy.asarray([q,]*len(q)) - delta_q*numpy.identity(len(q))   # q_prev as indicated above
     
+    for i in range(len(q)):
+	J[:,i] = (forward_kinematics(qn[i], Ti, Wi) - forward_kinematics(qp[i]))/delta_q/2.0
     return J
 
 def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
@@ -127,8 +135,18 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
     #    Return calculated q if maximum iterations were not exceeded
     #    Otherwise, return None
     #
+    q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
+    p = forward_kinematics(q, Ti, Wi)
+    e = p -pd
+    e[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
+    while numpy.linalg.norm(e) > tolerance and iterations < max_iterations:
+	J = jacobian(q, Ti, Wi)
+	q = (q - numpy.dot(numpy.linal.pinv(J), e) + math.pi)%(2*math.pi - math.pi)
+	e = p-pd
+	e[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi    
+    	iterations += 1
     
-    return None
+    return q if iterations < max_iterations else None 
 
 def callback_la_ik_for_pose(req):
     global transforms, joints
