@@ -19,7 +19,7 @@ import urdf_parser_py.urdf
 from geometry_msgs.msg import PointStamped
 from custom_msgs.srv import *
 
-NAME = "FULL_NAME"
+NAME = "SOLANO GONZALEZ FELIPE DE JESUS"
 
 def get_model_info():
     global joints, transforms
@@ -51,6 +51,10 @@ def forward_kinematics(q, Ti, Wi):
     #         H = H * Ti * Ri
     #     H = H * Ti[7]
     #     Get xyzRPY from the resulting Homogeneous Transformation 'H'
+    H = tft.identity_matrix()
+    for i in range(len(q)):
+        H = tft.concatenate_matrices(H, Ti[i], tft.rotation_matrix(q[i],Wi[i]))
+    H = tft.concatenate_matrices(H, Ti[7])
     # Where:
     #     Ti are the Homogeneous Transformations from frame i to frame i-1 when joint i is at zero position
     #     Ri are the Homogeneous Transformations with zero-translation and rotation qi around axis Wi.
@@ -64,8 +68,8 @@ def forward_kinematics(q, Ti, Wi):
     #     http://docs.ros.org/en/jade/api/tf/html/python/transformations.html
     #
     
-    x,y,z = 0,0,0  # Get xyz from resulting H
-    R,P,Y = 0,0,0  # Get RPY from resulting H
+    x,y,z = H[0][3],H[1][3],H[2][3]  # Get xyz from resulting H
+    R,P,Y = tft.euler_from_matrix(H,'rxyz')  # Get RPY from resulting H
     return numpy.asarray([x,y,z,R,P,Y])
 
 def jacobian(q, Ti, Wi):
@@ -87,15 +91,18 @@ def jacobian(q, Ti, Wi):
     #     q_prev = [q1-delta       q2        q3   ....     q7
     #                  q1       q2-delta     q3   ....     q7
     #                              ....
-    #                  q1          q2        q3   ....   q7-delta]
-    #     FOR i = 1,..,7:
-    #           i-th column of J = ( FK(i-th row of q_next) - FK(i-th row of q_prev) ) / (2*delta_q)
-    #     RETURN J
-    #     
+    #                  q1          q2        q3   ....   q7-delta]     
     J = numpy.asarray([[0.0 for a in q] for i in range(6)])            # J 6x7 full of zeros
     qn = numpy.asarray([q,]*len(q)) + delta_q*numpy.identity(len(q))   # q_next as indicated above
     qp = numpy.asarray([q,]*len(q)) - delta_q*numpy.identity(len(q))   # q_prev as indicated above
     
+    #     FOR i = 1,..,7:
+    #           i-th column of J = ( FK(i-th row of q_next) - FK(i-th row of q_prev) ) / (2*delta_q)
+    #     RETURN J
+    #
+
+    for i in range(0,7):
+        J[:,i] = (forward_kinematics(qn[i,:],Ti,Wi)-forward_kinematics(qp[i,:],Ti,Wi))/(2*delta_q)
     return J
 
 def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
@@ -103,7 +110,6 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
     tolerance = 0.01
     max_iterations = 20
     iterations = 0
-    q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])  # Initial guess
     #
     # TODO:
     # Solve the IK problem given a kinematic description (Ti, Wi) and a desired configuration.
@@ -114,8 +120,11 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
     # You can do the following steps:
     #
     #    Set an initial guess for joints 'q'. Suggested: [-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3]
+    q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])  # Initial guess
     #    Calculate Forward Kinematics 'p' by calling the corresponding function
+    p = forward_kinematics(q, Ti, Wi)
     #    Calcualte error = p - pd
+    error = p - pd
     #    Ensure orientation angles of error are in [-pi,pi]
     #    WHILE |error| > TOL and iterations < maximum iterations:
     #        Calculate Jacobian
@@ -126,7 +135,34 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
     #        Increment iterations
     #    Return calculated q if maximum iterations were not exceeded
     #    Otherwise, return None
-    #
+    
+    while numpy.linalg.norm(error)>tolerance and iterations<max_iterations:
+
+        #Mateniendo angulo dentro -pi y pi
+        for i in range(len(error)):
+            if error[i] > math.pi:
+                error[i] -= 2*math.pi
+            elif error[i] < (-math.pi):
+                error[i] += 2*math.pi
+
+        J = jacobian(q,Ti,Wi)
+        q = q - numpy.dot(numpy.linalg.pinv(J),error)
+
+        #Mateniendo angulo dentro -pi y pi
+        for i in range(len(error)):
+            if error[i] > math.pi:
+                error[i] -= 2*math.pi
+            elif error[i] < (-math.pi):
+                error[i] += 2*math.pi
+        
+        p = forward_kinematics(q,Ti,Wi)
+        error = p - pd
+        iterations+=1
+    
+    if(iterations<max_iterations):
+        return q
+    else:
+        return None
     
     return None
 
