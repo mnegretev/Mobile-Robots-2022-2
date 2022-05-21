@@ -14,7 +14,7 @@ import numpy
 import rospy
 import rospkg
 
-NAME = "FULL_NAME"
+NAME = "SOLANO GONZALEZ FELIPE DE JESUS"
 
 class NeuralNetwork(object):
     def __init__(self, layers, weights=None, biases=None):
@@ -46,9 +46,16 @@ class NeuralNetwork(object):
         # TODO:
         # Write a function similar to 'feedforward' but instead of returning only the output layer,
         # return a list containing the output of each layer, from input to output.
-        # Include input x as the first output.
-        #
         y = []
+        y.append(x) # Include input x as the first output.
+
+        # For each layer
+        for i in range(len(self.layer_sizes)-1):
+            # Same as feedForward
+            aux = numpy.dot(self.weights[i],x) + self.biases[i]
+            x = 1.0 / (1.0 + numpy.exp(-aux))
+            # Append probability for each possible output
+            y.append(x)
         return y
 
     def backpropagate(self, x, yt):
@@ -64,14 +71,24 @@ class NeuralNetwork(object):
         # You can calculate the gradient following these steps:
         #
         # Calculate delta for the output layer L: delta=(yL-yt)*yL*(1-yL)
-        # nabla_b of output layer = delta      
+        delta = (y[-1]-yt)*y[-1]*(1-y[-1])
+        # nabla_b of output layer = delta
+        nabla_b[-1] = delta
         # nabla_w of output layer = delta*yLpT where yLpT is the transpose of the ouput vector of layer L-1
+        nabla_w[-1] = delta*numpy.transpose(y[-2])
         # FOR all layers 'l' from L-1 to input layer: 
         #     delta = (WT * delta)*yl*(1 - yl)
         #     where 'WT' is the transpose of the matrix of weights of layer l+1 and 'yl' is the output of layer l
         #     nabla_b[-l] = delta
         #     nabla_w[-l] = delta*ylpT  where ylpT is the transpose of outputs vector of layer l-1
         #        
+
+        #for all layers
+        for i in range(2,len(self.layer_sizes)):
+            delta = numpy.dot(numpy.transpose(self.weights[-i+1]),delta)*y[-i]*(1-y[-i])
+            nabla_b[-i] = delta
+            nabla_w[-i] = delta*numpy.transpose(y[-i-1])
+
         return nabla_w, nabla_b
 
     def update_with_batch(self, batch, eta):
@@ -115,7 +132,7 @@ class NeuralNetwork(object):
 
 
 def load_dataset(folder):
-    print "Loading data set from " + folder
+    print ("Loading data set from " + folder)
     if not folder.endswith("/"):
         folder += "/"
     training_dataset, training_labels, testing_dataset, testing_labels = [],[],[],[]
