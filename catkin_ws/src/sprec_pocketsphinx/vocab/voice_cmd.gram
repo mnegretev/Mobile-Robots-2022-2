@@ -8,8 +8,14 @@ grammar voice_cmd;
 
 public <move> = MOVE FORWARD;
 
-public <move2> = STOP | MOVE <direction> [<speed>];
+public <move2> = ROBOT <verb> [<opc1>] <object> <mandatory> [<opc1>] <loc> | MOVE [<opc1>] <object> <mandatory> [<opc1>] <loc>;
 
-<direction> = FORWARD | BACK | LEFT | RIGHT;
+<verb> = MOVE;
 
-<speed> = FULL SPEED | HALF SPEED;
+<opc1> = THE;
+
+<object> = DRINK | PRINGLES;
+
+<mandatory> = TO;
+
+<loc> = TABLE | KITCHEN;
