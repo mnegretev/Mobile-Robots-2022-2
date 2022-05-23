@@ -14,7 +14,7 @@ import numpy
 import rospy
 import rospkg
 
-NAME = "FULL_NAME"
+NAME = "Villanueva_Aragon_Gabriel"
 
 class NeuralNetwork(object):
     def __init__(self, layers, weights=None, biases=None):
@@ -48,7 +48,13 @@ class NeuralNetwork(object):
         # return a list containing the output of each layer, from input to output.
         # Include input x as the first output.
         #
-        y = []
+	y = []
+	y.append(x)
+	for i in range(len(self.biases)):
+            z = numpy.dot(self.weights[i], x) + self.biases[i]
+            x = 1.0 / (1.0 + numpy.exp(-z))  #output of the current layer is the input of the 		next one
+            y.append(x)
+        
         return y
 
     def backpropagate(self, x, yt):

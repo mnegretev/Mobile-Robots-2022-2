@@ -17,6 +17,7 @@ import tf.transformations as tft
 import numpy
 import urdf_parser_py.urdf
 from geometry_msgs.msg import PointStamped
+#from custom_msgs.msg import ArmConfiguration
 from custom_msgs.srv import *
 
 NAME = "Villanueva_Aragon_Gabriel"
@@ -47,15 +48,20 @@ def forward_kinematics(q, Ti, Wi):
     # Calculate the forward kinematics given the set of seven angles 'q'
     # You can use the following steps:
     #     H = I   # Assing to H a 4x4 identity matrix
-	  
     #     for all qi in q:
     #         H = H * Ti * Ri
     #     H = H * Ti[7]
     #     Get xyzRPY from the resulting Homogeneous Transformation 'H'
+    H = tft.identity_matrix()
+    for i in range(len(q)):
+        H = tft.concatenate_matrices(H,Ti[i],tft.rotation_matrix(q[i],Wi[i]))
     # Where:
     #     Ti are the Homogeneous Transformations from frame i to frame i-1 when joint i is at zero position
     #     Ri are the Homogeneous Transformations with zero-translation and rotation qi around axis Wi.
     #     Ti[7] is the final Homogeneous Transformation from gripper center to joint 7.
+
+    H=tft.concatenate_matrices(H,Ti[7])
+
     # Hints:
     #     Use the tft.identity_matrix() function to get the 4x4 I
     #     Use the tft.concatenate_matrices() function for multiplying Homogeneous Transformations
@@ -64,16 +70,9 @@ def forward_kinematics(q, Ti, Wi):
     #     Check online documentation of these functions:
     #     http://docs.ros.org/en/jade/api/tf/html/python/transformations.html
     #
-    H=tft.identity_matrix()
-    i=0
-    for qi in q:
-	Ri=tft.rotation_matrix(qi,Wi[i])
-	H=tft.concatenate_matrices(H , Ti[i] , Ri)
-	i=i+1
-    H=tft.concatenate_matrices(H , Ti[7])
     
-    x,y,z = H[0,3],H[1,3],H[2,3]  # Get xyz from resulting H
-    R,P,Y = list(tft.euler_from_matrix(H))  # Get RPY from resulting H
+    x,y,z = H[0][3],H[1][3],H[2][3] 
+    R,P,Y = tft.euler_from_matrix(H,'rxyz')  
     return numpy.asarray([x,y,z,R,P,Y])
 
 def jacobian(q, Ti, Wi):
@@ -96,15 +95,18 @@ def jacobian(q, Ti, Wi):
     #                  q1       q2-delta     q3   ....     q7
     #                              ....
     #                  q1          q2        q3   ....   q7-delta]
-    #     FOR i = 1,..,7:
-    #           i-th column of J = ( FK(i-th row of q_next) - FK(i-th row of q_prev) ) / (2*delta_q)
-    #     RETURN J
+
     #     
     J = numpy.asarray([[0.0 for a in q] for i in range(6)])            # J 6x7 full of zeros
     qn = numpy.asarray([q,]*len(q)) + delta_q*numpy.identity(len(q))   # q_next as indicated above
     qp = numpy.asarray([q,]*len(q)) - delta_q*numpy.identity(len(q))   # q_prev as indicated above
-    for i in range(len(i)):
-	J[:,i]=(forward_kinematics(qn, Ti, Wi)-forward_kinematics(qn, Ti, Wi))/delta_q/2.0
+    
+    #     FOR i = 1,..,7:
+    #           i-th column of J = ( FK(i-th row of q_next) - FK(i-th row of q_prev) ) / (2*delta_q)
+    #     RETURN J
+
+    for i in range(0,7):
+        J[:,i]=(forward_kinematics(qn[i,:],Ti,Wi)-forward_kinematics(qp[i,:],Ti,Wi))/(2*delta_q)
     return J
 
 def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
@@ -113,8 +115,7 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
     max_iterations = 20
     iterations = 0
     q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])  # Initial guess
-    #
-    # TODO:
+    
     # Solve the IK problem given a kinematic description (Ti, Wi) and a desired configuration.
     # where:
     # Ti are the Homogeneous Transformations from frame i to frame i-1 when joint i is at zero position
@@ -123,26 +124,13 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
     # You can do the following steps:
     #
     #    Set an initial guess for joints 'q'. Suggested: [-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3]
-    q= [-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3]
+
     #    Calculate Forward Kinematics 'p' by calling the corresponding function
-    p=forward_kinematics(q, Ti, Wi)
+    p = forward_kinematics(q, Ti, Wi)
+
     #    Calcualte error = p - pd
-    error = p - pd
+    error=p-pd 
     #    Ensure orientation angles of error are in [-pi,pi]
-    error[3:6]=(error[3:6]+math.pi)%(2*math.pi)-math.pi
-    while numpy.linalg.norm(err) > tolerance and iterations < max_iterations:
-        J = jacobian(q, Ti, Wi)
-        q = (q - numpy.dot(numpy.linalg.pinv(J), err) + math.pi)%(2*math.pi) - math.pi
-        p = forward_kinematics(q, Ti, Wi)
-        error = p - pd
-        error[3:6] = (error[3:6] + math.pi)%(2*math.pi) - math.pi
-        iterations +=1
-    if iterations < max_iterations:
-        print("InverseKinematics.->IK solved after " + str(iterations) + " iterations: " + str(q))
-        return q
-    else:
-        print("InverseKinematics.->Cannot solve IK. Max attempts exceeded. ")
-	return None	
     #    WHILE |error| > TOL and iterations < maximum iterations:
     #        Calculate Jacobian
     #        Update q estimation with q = q - pseudo_inverse(J)*error
@@ -150,11 +138,36 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
     #        Recalculate forward kinematics p
     #        Recalculate error and ensure angles are in [-pi,pi]
     #        Increment iterations
+    while numpy.linalg.norm(error)>tolerance and iterations<max_iterations: 
+
+        #CHECKING ERROR      
+        for i in range(len(error)):
+            if error[i] > math.pi:
+                error[i]-=2*math.pi
+            elif error[i] < (-math.pi):
+                error[i]+=2*math.pi
+
+        J = jacobian(q,Ti,Wi)
+        q = q - numpy.dot(numpy.linalg.pinv(J),error)
+
+        for i in range(len(q)):
+            if q[i] > math.pi:
+                q[i]-=2*math.pi
+            elif q[i] < -math.pi:
+                q[i]+=2*math.pi
+      
+        p= forward_kinematics(q,Ti,Wi)
+        error=p-pd
+
+
+        iterations+=1 
+
     #    Return calculated q if maximum iterations were not exceeded
-    #    Otherwise, return None
-    #
-    
-    
+    if(iterations<max_iterations):
+        return q
+    #    Otherwise, return None  
+    else:     
+        return None
 
 def callback_la_ik_for_pose(req):
     global transforms, joints
@@ -208,5 +221,5 @@ def main():
     while not rospy.is_shutdown():
         loop.sleep()
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     main()
