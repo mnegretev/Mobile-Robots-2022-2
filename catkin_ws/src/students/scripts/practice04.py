@@ -47,30 +47,42 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     
     return cmd_vel
 
-def follow_path(path):
-    
-    idx = 0
+def follow_path(path):def follow_path(path):
+    #
+    # TODO:
+    # Use the calculate_control function to move the robot along the path.
+    # Path is given as a sequence of points [[x0,y0], [x1,y1], ..., [xn,yn]]
+    # The publisher for the twist message is already declared as 'pub_cmd_vel'
    
-    [l_x, l_y] = path[idx]
-    [g_x, g_y] = path[-1]
-
-
+    # Set local goal point as the first point of the path
+    idx = 0
+    [local_x,local_y] = path[idx]
+    # Set global goal point as the last point of the path
+    [global_x, global_y] = path[-1]
+    # Get robot position with 
     [robot_x, robot_y, robot_a] = get_robot_pose(listener)
-    global_error = math.sqrt((g_x - robot_x)*2 + (g_y - robot_y)*2)  
-    local_error = math.sqrt((l_x - robot_x)*2 + (l_y - robot_y)*2)   
-
-    while global_error > 0.1 and not rospy.is_shutdown():
-		pub_cmd_vel.publish(calculate_control(robot_x, robot_y, robot_a, l_x, l_y))
-    		loop.sleep() 
-    		[robot_x, robot_y, robot_a] = get_robot_pose(listener)
-    		local_error = math.sqrt((l_x - robot_x)*2 + (l_y - robot_y)*2)
-   		idx = min(idx+1, len(path)-1) if local_error < 0.3 else idx
-
-   		[l_x, l_y] = path[idx]
-
-        	global_error = math.sqrt((g_x - robot_x)*2 + (g_y - robot_y)*2)  
-    		pub_cmd_vel.publish(Twist())
-
+    # Calculate global error as the magnitude of the vector from robot pose to global goal point
+    global_error = math.sqrt((global_x - robot_x)**2 + (global_y - robot_y)**2)
+    # Calculate local  error as the magnitude of the vector from robot pose to local  goal point
+    local_error = math.sqrt((local_x - robot_x)**2 + (local_y - robot_y)**2)
+    # WHILE global error > tolerance  and not rospy.is_shutdown() #This keeps the program aware of signals such as Ctrl+C
+    while global_error > 0.1 and not rospy.is_shutdown():#error global mayor a 10cm
+        #Calculate control signals v and w and publish the corresponding message
+        pub_cmd_vel.publish(calculate_control(robot_x, robot_y, robot_a, local_x, local_y))
+        #loop.sleep()  #This is important to avoid an overconsumption of processing time
+        loop.sleep()#se espera 50ms=20Hz
+        #     Get robot position
+        [robot_x, robot_y, robot_a] = get_robot_pose(listener)
+        #Calculate local error 
+        local_error= math.sqrt((local_x - robot_x)**2 + (local_y - robot_y)**2)
+        #If local error is less than 0.3 (you can change this constant)
+        idx = min(idx +1, len(path)-1) if local_error < 0.3 else idx
+        #Change local goal point to the next point in the path
+        [local_x,local_y] = path[idx]
+        #Calculate global error
+        global_error = math.sqrt((global_x - robot_x)**2 + (global_y - robot_y)**2)
+    # Send zero speeds (otherwise, robot will keep moving after reaching last point)
+    pub_cmd_vel.publish(Twist())
     return
 
 

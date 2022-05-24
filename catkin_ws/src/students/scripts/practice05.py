@@ -27,65 +27,47 @@ pub_markers = None
 
 def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     cmd_vel = Twist()
-    alpha = 0.1
-    beta = 0.1
-    error_a = (math.atan2(goal_y-robot_y, goal_x-robot_x)) - robot_a
-
-    wm = 0.7
-    vm = 0.7
-
+    v_max = 0.5
+    w_max = 1
+    error_a = math.atan2( goal_y - robot_y , goal_x - robot_x)  - robot_a
     if error_a > math.pi:
-    	error_a = error_a - 2*math.pi
+        error_a = error_a - 2*math.pi
     elif error_a <= -math.pi:
-	error_a = error_a + 2*math.pi
-  
-    v = vm*math.exp(-error_a*error_a/alpha)
-    w = wm*(2/(1 + math.exp(-error_a/beta)) - 1)
+        error_a = error_a + 2*math.pi
+    alpha = 1
+    beta = 1
+    v = v_max*math.exp(-error_a*error_a/alpha)
+    w = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
 
     cmd_vel.linear.x = v
-    cmd_vel.angular.z = w
-    
+    cmd_vel.angular.z= w
     return cmd_vel
 
 def attraction_force(robot_x, robot_y, goal_x, goal_y):
-	
-	q = (robot_x,robot_y)
-	q_g = (goal_v,goal_y)
-	mag = numpy.linalg.norm(q_g - q)
-	tol = 0.00001
-	alpha = 1
-	while mag > tol:
-		F_att = alpha*((q-q_g)/mag)
-
-    # TODO:
-    # Calculate the attraction force, given the robot and goal positions.
-    # Return a tuple of the form [force_x, force_y]
-    # where force_x and force_y are the X and Y components
-    # of the resulting attraction force w.r.t. map.
-    #
+    alfa = 0.8
+    dist_to_goal = math.sqrt((goal_x - robot_x)**2 + (goal_y - robot_y)**2)
+    [force_x, force_y] = [(robot_x - goal_x)*alfa/ dist_to_goal, (robot_y - goal_y)*alfa/ dist_to_goal] 
+    return [force_x, force_y]
     
-    return [0, 0]
 
 def rejection_force(robot_x, robot_y, robot_a, laser_readings):
-	q = (robot_x,robot_y)
-	q_g = (goal_v,goal_y)
-	mag = numpy.linalg.norm(q_g - q)
-	tol = 0.00001
-	beta = 2
-	while mag > tol:
-		for 		
-		F_rej=
-    # TODO:
-    # Calculate the total rejection force given by the average
-    # of the rejection forces caused by each laser reading.
-    # laser_readings is an array where each element is a tuple [distance, angle]
-    # both measured w.r.t. robot's frame.
-    # See lecture notes for equations to calculate rejection forces.
-    # Return a tuple of the form [force_x, force_y]
-    # where force_x and force_y are the X and Y components
-    # of the resulting rejection force w.r.t. map.
-    #
-    return [0, 0]
+    beta = 0.4
+    influence_dist = 0.1
+    repx=[]
+    repy=[]
+    sumax=0.1
+    sumay=0.1
+    for i in range (0,len(laser_readings)):
+        if laser_readings[i][0] > influence_dist: #if d > d0
+            delta = beta*math.sqrt(abs(1/laser_readings[i][0] - 1/influence_dist))
+            repx.append((math.cos(laser_readings[i][1] + robot_a))/laser_readings[i][0]*delta)
+            repy.append((math.sin(laser_readings[i][1] + robot_a))/laser_readings[i][0]*delta)
+        else:
+            repx.append(0)  
+            repy.append(0)        
+        
+    [force_x, force_y] = [sum(repx)/len(repx),sum(repy)/len(repy)]
+    return [force_x, force_y]
 
 def callback_pot_fields_goal(msg):
     goal_x = msg.pose.position.x
@@ -102,24 +84,23 @@ def callback_pot_fields_goal(msg):
     # Sum of attraction and rejection forces is the gradient of the potential field,
     # then, you can reach the goal point with the following pseudocode:
     #
-    # Set constant epsilon (0.5 is a good start)
-    # Set tolerance  (0.1 is a good start)
-    # Get robot position by calling robot_x, robot_y, robot_a = get_robot_pose(listener)
-    # Calculate distance to goal as math.sqrt((goal_x - robot_x)**2 + (goal_y - robot_y)**2)
-    # WHILE distance_to_goal_point > tolerance and not rospy.is_shutdown():
-    #     Calculate attraction force Fa by calling [fax,fay]=attraction_force(robot_x,robot_y,goal_x, goal_y)
-    #     Calculate rejection  force Fr by calling [frx,fry]=rejection_force (robot_x,robot_y,robot_a,laser_readings)
-    #     Calculate resulting  force F = Fa + Fr
-    #     Calculate next local goal point P = [px, py] = Pr - epsilon*F
-    #
-    #     Calculate control signals by calling msg_cmd_vel = calculate_control(robot_x, robot_y, robot_a, px, py)
-    #     Send the control signals to mobile base by calling pub_cmd_vel.publish(msg_cmd_vel)
-    #     Call draw_force_markers(robot_x, robot_y, afx, afy, rfx, rfy, fx, fy, pub_markers)  to draw all forces
-    #
-    #     Wait a little bit of time by calling loop.sleep()
-    #     Update robot position by calling robot_x, robot_y, robot_a = get_robot_pose(listener)
-    #     Recalculate distance to goal position
-    #  Publish a zero speed (to stop robot after reaching goal point)
+    epsilon=0.5 # Set constant epsilon (0.5 is a good start)
+    tolerance= 0.15# Set tolerance  (0.1 is a good start)
+    robot_x, robot_y, robot_a = get_robot_pose(listener)# Get robot position by calling robot_x, robot_y, robot_a = get_robot_pose(listener)
+    dist_to_goal = math.sqrt((goal_x - robot_x)**2 + (goal_y - robot_y)**2) # Calculate distance to goal as math.sqrt((goal_x - robot_x)2 + (goal_y - robot_y)*2)
+    
+    while dist_to_goal > tolerance and not rospy.is_shutdown():
+        [fax, fay] = attraction_force(robot_x, robot_y, goal_x, goal_y)
+        [frx, fry] = rejection_force (robot_x, robot_y, robot_a, laser_readings)
+        [fx, fy] = [fax+frx , fay+fry]
+        [px, py] = [robot_x - epsilon*fx , robot_y - epsilon*fy] 
+        msg_cmd_vel = calculate_control(robot_x, robot_y, robot_a, px, py)
+        pub_cmd_vel.publish(msg_cmd_vel)#     Send the control signals to mobile base by calling pub_cmd_vel.publish(msg_cmd_vel)
+        draw_force_markers(robot_x, robot_y, fax, fay, frx, fry, fx, fy, pub_markers)#     Call   to draw all forces
+        loop.sleep() #     Wait a little bit of time by calling loop.sleep()
+        robot_x, robot_y, robot_a = get_robot_pose(listener)#     Update robot position 
+        dist_to_goal = math.sqrt((goal_x - robot_x)**2 + (goal_y - robot_y)**2)#     Recalculate distance to goal position
+    pub_cmd_vel.publish(Twist())#  Publish a zero speed (to stop robot after reaching goal point)
     print("Goal point reached")
 
 def get_robot_pose(listener):
