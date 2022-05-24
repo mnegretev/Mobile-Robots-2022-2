@@ -18,7 +18,7 @@ from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import PointStamped, Point
 from custom_msgs.srv import FindObject, FindObjectResponse
 
-NAME = "FULL_NAME"
+NAME = "Lopez_Gutierrez_Francisco_Emmanuel"
 
 def segment_by_color(img_bgr, points, obj_name):
     #
@@ -41,11 +41,12 @@ def segment_by_color(img_bgr, points, obj_name):
     #   using the point cloud 'points'. Use numpy array notation to process the point cloud data.
     #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
     #   the pixel in the center of the image.
-    x = points[center[0], center[1]][0]
-    y = points[center[0], center[1]][1]
+    x = points[int(center[0]), int(center[1])][0]
+    y = points[int(center[0]), int(center[1])][1]
+    z = points[int(center[0]), int(center[1])][2]
     #
     
-    return [1,center,x,y,0]
+    return [center[0],center[1],x,y,z]
 
 def callback_find_object(req):
     global pub_point, img_bgr
