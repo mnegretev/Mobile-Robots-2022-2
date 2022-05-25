@@ -49,7 +49,7 @@ def callback_goal_reached(msg):
 
 def parse_command(cmd):
     obj = "pringles" if "PRINGLES" in cmd else "drink"
-    loc = [8.0,8.5] if "TABLE" in cmd else [7, 0]
+    loc = [0,0] if "TABLE" in cmd else [7, 0]
     return obj, loc
 
 #
@@ -244,14 +244,6 @@ def main():
     obj_real_x = 0
     obj_real_y = 0
     obj_real_z = 0
-    #INverse kinematics positions
-    q1 = 0
-    q2 = 0
-    q3 = 0
-    q4 = 0
-    q5 = 0
-    q6 = 0
-    q7 = 0
 
     #
     # FINAL PROJECT
@@ -292,17 +284,18 @@ def main():
             #Para las pringles 
             if requested_object == "pringles":
                 #Obteniendo posicion real
-                #obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
-                #print("Posicion de objeto desde la referencia del brazo derecho:")
-                #print(str([obj_real_x,obj_real_y,obj_real_z]))
+                obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
+                print("Posicion de objeto desde la referencia del brazo izquierdo:")
+                print(str([obj_real_x,obj_real_y,obj_real_z]))
                 #print("Valores de articulaciones con cinematica inversa: ")
                 #obj_q1,obj_q2,obj_q3,obj_q4,obj_q5,obj_q6,obj_q7 = ik_left_arm(obj_real_x,obj_real_y,obj_real_z)
                 #Mover brazo izquierdo
                 current_state = "SM_MLA"
+            #Para drink
             else:
-                #obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
-                #print("Posicion de objeto desde la referencia del brazo derecho:")
-                #print(str([obj_real_x,obj_real_y,obj_real_z]))
+                obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
+                print("Posicion de objeto desde la referencia del brazo derecho:")
+                print(str([obj_real_x,obj_real_y,obj_real_z]))
                 #Mover brazo derecho
                 #Cinematica inversa
                 #print("Valores de articulaciones con cinematica inversa: ")
@@ -312,8 +305,8 @@ def main():
         
         #Mover brazo izquierdo
         elif current_state == "SM_MLA":
-            #Sequence
-
+            
+            #Sequence for pringles
             #Acomodando el brazo
             q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.20,-0.05,-0.25)
             move_left_arm(q1,q2,q3,q4,q5,q6,q7)
@@ -328,9 +321,75 @@ def main():
 
             current_state = "SM_INIT_MOVE"
         
+        #Mover brazo derecho
         elif current_state == "SM_MRA":
 
+            #Sequence for drink
+            #Acomodando el brazo
+            q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.20,0.05,-0.25)
+            move_right_arm(q1,q2,q3,q4,q5,q6,q7)
+            move_right_gripper(0.7)
+            #Acercando el brazo
+            q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.40,0.05,-0.37)
+            move_right_arm(q1,q2,q3,q4,q5,q6,q7)
+            move_right_gripper(-0.3)
+            #Alejando el brazo de la mesa
+            q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.20,0.05,-0.25)
+            move_right_arm(q1,q2,q3,q4,q5,q6,q7)
+            #To be code
+
             current_state = "SM_INIT_MOVE"
+        
+        #Salir del mapa de costo
+        elif current_state == "SM_INIT_MOVE":
+            move_base(-1,0,2)
+            current_state = "SM_FOLLOW_PATH"
+            pass
+
+        #Mover a punto deseado
+        elif current_state == "SM_FOLLOW_PATH":
+            print("Llendo a: " + str(requested_location))
+            go_to_goal_pose(requested_location[0],requested_location[1])
+            goal_reached = False
+            current_state = "SM_WAIT"
+            pass
+        
+        #Se espera mientras deja el objeto
+        elif current_state == "SM_WAIT":
+            if goal_reached:
+                print("Se ha llegado a: " + str(requested_location))
+                goal_reached = False
+                current_state = "SM_LEAVE_RETURN"
+
+        #Suelta el objeto y regresa a la posicion inicial
+        elif current_state == "SM_LEAVE_RETURN":
+            print("Soltando el objeto...")
+            if requested_object == "pringles":
+                q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.40,-0.05,-0.30)
+                move_left_arm(q1,q2,q3,q4,q5,q6,q7)
+                move_left_gripper(0.0)
+                q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.20,-0.05,-0.25)
+                move_left_arm(q1,q2,q3,q4,q5,q6,q7)
+            else: #Drink
+                q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.40,0.05,-0.37)
+                move_right_arm(q1,q2,q3,q4,q5,q6,q7)
+                move_right_gripper(0.0)
+                q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.20,0.05,-0.25)
+                move_right_arm(q1,q2,q3,q4,q5,q6,q7)
+            go_to_goal_pose(3.32,5.86)
+            print("Regresando a casa...")
+            goal_reached = False
+            current_state = "SM_WAIT_RETURN"
+        
+        #Se regresa y ajusta posicion
+        elif current_state == "SM_WAIT_RETURN":
+            if goal_reached == True:
+                print("Se regreso a casa...")
+                goal_reached = False
+                print("Ajustando posicion...")
+                move_base(0.2,0,1.3)
+                current_state = "SM_INIT"
+                executing_task = False
 
 
         loop.sleep()
