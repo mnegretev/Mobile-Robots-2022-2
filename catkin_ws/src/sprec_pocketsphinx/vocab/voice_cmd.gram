@@ -1,15 +1,20 @@
 #JSGF V1.0;
 
 /**
- * JSGF Grammar similar to kws example
+ * JSGF Grammar to move the robot
  */
 
 grammar voice_cmd;
 
-public <move> = MOVE FORWARD;
+public <simple_command> = (ROBOT TAKE THE <object> TO THE <location>);
+<object> = PRINGLES | DRINK;
+<location> = TABLE | KITCHEN;
+
+/*public <move> = MOVE FORWARD;
 
 public <move2> = STOP | MOVE <direction> [<speed>];
 
 <direction> = FORWARD | BACK | LEFT | RIGHT;
 
-<speed> = FULL SPEED | HALF SPEED;
+<speed> = FULL SPEED | HALF SPEED;*/
+
