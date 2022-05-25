@@ -221,9 +221,6 @@ def main():
     while not rospy.is_shutdown():
         loop.sleep()
 
-<<<<<<< HEAD
-    
-=======
->>>>>>> 3d11eead57a47d876e67d5653b9680a3b86b2ad9
+
 if __name__ == '__main__':
     main()

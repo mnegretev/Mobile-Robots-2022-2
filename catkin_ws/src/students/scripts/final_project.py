@@ -33,12 +33,11 @@ NAME = "FULL_NAME"
 #
 # Global variable 'speech_recognized' contains the last recognized sentence
 #
-<<<<<<< HEAD
-def callback_recognized_speech(msg):
-=======
+##<<<<<<< HEAD
+
+#=======
 
 def callback_recognized_speech(msg):    #Reconoce la voz y publica un texto
->>>>>>> 3d11eead57a47d876e67d5653b9680a3b86b2ad9
     global recognized_speech, new_task, executing_task
     if executing_task:
         return
@@ -171,8 +170,42 @@ def find_object(obj_name):
     resp_find_object = clt_find_object(req_find_object)
     print("Object found at: " + str([resp_find_object.x, resp_find_object.y, resp_find_object.z]))
     return resp_find_object.x, resp_find_object.y, resp_find_object.z
+def transform_point_to_left_arm(x,y,z):
+    listener = tf.TransformListener()
+    listener.waitForTransform("shoulders_left_link", "kinect_link", rospy.Time(), rospy.Duration(4.0))
+    obj_p = PointStamped()
+    obj_p.header.frame_id = "kinect_link"
+    obj_p.header.stamp = rospy.Time(0)
+    obj_p.point.x, obj_p.point.y, obj_p.point.z = x,y,z
+    target_frame = "shoulders_left_link"
+    obj_p = listener.transformPoint(target_frame, obj_p)
+    return obj_p.point.x, obj_p.point.y, obj_p.point.z
 
+def transform_point_to_right_arm(x,y,z):
+    listener = tf.TransformListener()
+    listener.waitForTransform("shoulders_left_link", "kinect_link", rospy.Time(), rospy.Duration(4.0))
+    obj_p = PointStamped()
+    obj_p.header.frame_id = "kinect_link"
+    obj_p.header.stamp = rospy.Time(0)
+    obj_p.point.x, obj_p.point.y, obj_p.point.z = x,y,z
+    target_frame = "shoulders_right_link"
+    obj_p = listener.transformPoint(target_frame, obj_p)
+    return obj_p.point.x, obj_p.point.y, obj_p.point.z
+def ik_left_arm(x,y,z):
+    clt_la_inverse_kin = rospy.ServiceProxy("/manipulation/la_inverse_kinematics", InverseKinematics)
+    req_ik = InverseKinematicsRequest()
+    req_ik.x, req_ik.y, req_ik.z = x,y,z
+    req_ik.roll, req_ik.pitch, req_ik.yaw = 3.0, -1.57, -3.0
+    resp_ik = clt_la_inverse_kin(req_ik)
+    return resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7
 
+def ik_right_arm(x,y,z):
+    clt_ra_inverse_kin = rospy.ServiceProxy("/manipulation/ra_inverse_kinematics", InverseKinematics)
+    req_ik = InverseKinematicsRequest()
+    req_ik.x, req_ik.y, req_ik.z = x,y,z
+    req_ik.roll, req_ik.pitch, req_ik.yaw = 3.0, -1.57, -3.0
+    resp_ik = clt_ra_inverse_kin(req_ik)
+    return resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7
 def main():
     global new_task, recognized_speech, executing_task, goal_reached
     global pubLaGoalPose, pubRaGoalPose, pubHdGoalPose, pubLaGoalGrip, pubRaGoalGrip
@@ -213,6 +246,8 @@ def main():
     # 
     #
     obj,loc=0,0
+    xd,yd,zd=0,0,0
+
     while not rospy.is_shutdown():
 
 	if current_state == "SM_INIT":
@@ -236,10 +271,26 @@ def main():
 		current_state = "Encontrar_objeto"
 	elif current_state == "Encontrar_objeto":
 		print("encontrando el objeto")
-		resp_find_object.x, resp_find_object.y, resp_find_object.z=find_object(obj)
-		print(resp_find_object.x)
-		
-  
+		xd,yd,zd=find_object(obj)
+		print(xd,yd,zd)
+		current_state = "Trasladar_punto"			
+	elif current_state == "Trasladar_punto":
+		if obj == "pringles":
+			xt,yt,zt=transform_point_to_left_arm(xd,yd,zd)
+		else:
+			xt,yt,zt=transform_point_to_right_arm(xd,yd,zd)
+		print(xt,yt,zt)
+  		current_state = "IK"
+	elif current_state == "IK":
+		move_base(-0.5, 0.,1.0)
+		if obj == "pringles":
+			ml=ik_left_arm(xt,yt,zt)
+			print(ml)
+			move_left_arm(ml[0],ml[1],ml[2],ml[3],ml[4],ml[5],ml[6])
+		else:
+			ml=ik_right_arm(xt,yt,zt)
+			move_right_arm(ml(0),ml(1),ml(2),ml(3),ml(4),ml(5),ml(6))
+		current_state = "SM_INIT"
 	loop.sleep()
 
 if __name__ == '__main__':
