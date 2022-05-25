@@ -49,7 +49,7 @@ def callback_goal_reached(msg):
 
 def parse_command(cmd):
     obj = "pringles" if "PRINGLES" in cmd else "drink"
-    loc = [8.0,8.5] if "TABLE" in cmd else [3.22, 9.72]
+    loc = [8.0,8.5] if "TABLE" in cmd else [7, 0]
     return obj, loc
 
 #
@@ -236,6 +236,12 @@ def main():
     current_state = "SM_INIT"
     requested_object   = ""
     requested_location = [0,0]
+    obj_kinect_x = 0
+    obj_kinect_y = 0
+    obj_kinect_z = 0
+    obj_real_x = 0
+    obj_real_y = 0
+    obj_real_z = 0
 
     #
     # FINAL PROJECT
@@ -244,6 +250,35 @@ def main():
     
     while not rospy.is_shutdown():
         
+        #Primer estado
+        if current_state == "SM_INIT":
+            print("Iniciando maquina de estados...")
+            current_state = "SM_NEW_TASK"
+        
+        #Segundo estado
+        elif current_state == "SM_NEW_TASK":
+            if new_task:
+                requested_object, requested_location = parse_command(recognized_speech)
+                print("Nuevo comando: " + requested_object + " to  " + str(requested_location))
+                say("Comando a ejecutar: " + recognized_speech)
+                current_state = "SM_MHEAD"
+                new_task = False
+                executing_task = True
+
+        #Tercer estado
+        elif current_state == "SM_MHEAD":
+            print("Ajustando posicion de la cabeza...")
+            move_head(0, -0.9)
+            current_state = "SM_FIND_OBJECT"
+
+        #Cuarto estado
+        elif current_state == "SM_FIND_OBJECT":
+            print("Tratando de encontrar objeto: " + requested_object)
+            obj_kinect_x,obj_kinect_y,obj_kinect_z = find_object(requested_object)
+            print("Posicion de objeto visto desde el kinect: " + str([obj_kinect_x,obj_kinect_y,obj_kinect_z]))
+            current_state = "SM_INVERSE_KINEMATICS"
+
+
         loop.sleep()
 
 if __name__ == '__main__':
