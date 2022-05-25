@@ -33,7 +33,12 @@ NAME = "FULL_NAME"
 #
 # Global variable 'speech_recognized' contains the last recognized sentence
 #
+<<<<<<< HEAD
 def callback_recognized_speech(msg):
+=======
+
+def callback_recognized_speech(msg):    #Reconoce la voz y publica un texto
+>>>>>>> 3d11eead57a47d876e67d5653b9680a3b86b2ad9
     global recognized_speech, new_task, executing_task
     if executing_task:
         return
