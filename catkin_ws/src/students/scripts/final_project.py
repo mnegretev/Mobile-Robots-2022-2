@@ -33,13 +33,13 @@ NAME = "FULL_NAME"
 #
 # Global variable 'speech_recognized' contains the last recognized sentence
 #
-def callback_recognized_speech(msg):    #Reconoce la voz y publica un texto
+def callback_recognized_speech(msg):
     global recognized_speech, new_task, executing_task
     if executing_task:
         return
     new_task = True
     recognized_speech = msg.data
-
+    print(recognized_speech)
 #
 # Global variable 'goal_reached' is set True when the last sent navigation goal is reached
 #
@@ -51,6 +51,8 @@ def parse_command(cmd):
     obj = "pringles" if "PRINGLES" in cmd else "drink"
     loc = [8.0,8.5] if "TABLE" in cmd else [3.22, 9.72]
     return obj, loc
+
+
 
 #
 # This function sends the goal articular position to the left arm and sleeps 2 seconds
@@ -108,7 +110,7 @@ def move_right_gripper(q):
 # This function sends the goal pan-tilt angles to the head and sleeps 1 second
 # to allow the head to reach the goal position. 
 #
-def move_head(pan, tilt):  #Mueve la cabeza para ver al escritorio
+def move_head(pan, tilt):
     global pubHdGoalPose
     msg = Float32MultiArray()
     msg.data.append(pan)
@@ -134,7 +136,7 @@ def move_base(linear, angular, t):
 # This function publishes a global goal position. This topic is subscribed by
 # pratice04 and performs path planning and tracking.
 #
-def go_to_goal_pose(goal_x, goal_y): #Publica un punto
+def go_to_goal_pose(goal_x, goal_y):
     global pubGoalPose
     goal_pose = PoseStamped()
     goal_pose.pose.orientation.w = 1.0
@@ -145,7 +147,7 @@ def go_to_goal_pose(goal_x, goal_y): #Publica un punto
 #
 # This function sends a text to be synthetized.
 #
-def say(text):    #Recibe un texto y lo publica 
+def say(text):
     global pubSay
     msg = SoundRequest()
     msg.sound   = -3
@@ -154,6 +156,17 @@ def say(text):    #Recibe un texto y lo publica
     msg.arg2    = "voice_kal_diphone"
     msg.arg = text
     pubSay.publish(msg)
+
+
+def find_object(obj_name):
+    clt_find_object = rospy.ServiceProxy("/vision/find_object", FindObject)
+    req_find_object = FindObjectRequest()
+    req_find_object.cloud = rospy.wait_for_message("/kinect/points", PointCloud2)
+    req_find_object.name  = obj_name
+    resp_find_object = clt_find_object(req_find_object)
+    print("Object found at: " + str([resp_find_object.x, resp_find_object.y, resp_find_object.z]))
+    return resp_find_object.x, resp_find_object.y, resp_find_object.z
+
 
 def main():
     global new_task, recognized_speech, executing_task, goal_reached
@@ -194,15 +207,35 @@ def main():
     # FINAL PROJECT
     # 
     #
-    
-    
+    obj,loc=0,0
     while not rospy.is_shutdown():
-        if current_state == "SM_INIT":
-		current_state ="HELLO"
-	if current_state == "HELLO":
-		say("Estoy vivo")
-		current_state = "SM_INIT"
-        loop.sleep()
+
+	if current_state == "SM_INIT":
+		print("comenzando")
+		if(new_task):
+			new_task= False
+			current_state = "SALUDO"
+	elif current_state == "SALUDO":
+		print("saludando")
+        	say("Hola Humano")
+		current_state = "Reconociendo_objeto"
+		
+	elif current_state == "Reconociendo_objeto":
+		print("Reconociendo el objeto")
+		obj,loc=parse_command(recognized_speech)
+		print(obj)
+		print(loc)
+		current_state = "Bajando_cabeza"
+	elif current_state == "Bajando_cabeza":
+		move_head(0,-0.9)
+		current_state = "Encontrar_objeto"
+	elif current_state == "Encontrar_objeto":
+		print("encontrando el objeto")
+		resp_find_object.x, resp_find_object.y, resp_find_object.z=find_object(obj)
+		print(resp_find_object.x)
+		
+  
+	loop.sleep()
 
 if __name__ == '__main__':
     try:
