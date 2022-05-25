@@ -236,12 +236,22 @@ def main():
     current_state = "SM_INIT"
     requested_object   = ""
     requested_location = [0,0]
+    #Kinect position
     obj_kinect_x = 0
     obj_kinect_y = 0
     obj_kinect_z = 0
+    #Object real position
     obj_real_x = 0
     obj_real_y = 0
     obj_real_z = 0
+    #INverse kinematics positions
+    obj_q1 = 0
+    obj_q2 = 0
+    obj_q3 = 0
+    obj_q4 = 0
+    obj_q5 = 0
+    obj_q6 = 0
+    obj_q7 = 0
 
     #
     # FINAL PROJECT
@@ -276,7 +286,29 @@ def main():
             print("Tratando de encontrar objeto: " + requested_object)
             obj_kinect_x,obj_kinect_y,obj_kinect_z = find_object(requested_object)
             print("Posicion de objeto visto desde el kinect: " + str([obj_kinect_x,obj_kinect_y,obj_kinect_z]))
-            current_state = "SM_INVERSE_KINEMATICS"
+            current_state = "SM_KINEMATICS"
+
+        #Quinto estado
+        elif current_state == "SM_KINEMATICS":
+            #Para las pringles 
+            if requested_object == "pringles":
+                #Obteniendo posicion real
+                obj_real_x,obj_real_y,obj_real_z = transform_point_to_left_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
+                print("Posicion de objeto desde la referencia correcta: " + str([obj_real_x,obj_real_y,obj_real_z]))
+                #Cinematica inversa
+                print("Valores de articulaciones con cinematica inversa: ")
+                obj_q1,obj_q2,obj_q3,obj_q4,obj_q5,obj_q6,obj_q7 = ik_left_arm(obj_real_x,obj_real_y,obj_real_z)
+                #Mover brazo izquierdo
+                current_state = "SM_MLA"
+            else:
+                obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
+                print("Posicion de objeto desde la referencia correcta: " + str([obj_real_x,obj_real_y,obj_real_z]))
+                #Mover brazo derecho
+                #Cinematica inversa
+                print("Valores de articulaciones con cinematica inversa: ")
+                obj_q1,obj_q2,obj_q3,obj_q4,obj_q5,obj_q6,obj_q7 = ik_right_arm(obj_real_x,obj_real_y,obj_real_z)
+                #Mover brazo derecho
+                current_state = "SM_MRA" 
 
 
         loop.sleep()
