@@ -245,13 +245,13 @@ def main():
     obj_real_y = 0
     obj_real_z = 0
     #INverse kinematics positions
-    obj_q1 = 0
-    obj_q2 = 0
-    obj_q3 = 0
-    obj_q4 = 0
-    obj_q5 = 0
-    obj_q6 = 0
-    obj_q7 = 0
+    q1 = 0
+    q2 = 0
+    q3 = 0
+    q4 = 0
+    q5 = 0
+    q6 = 0
+    q7 = 0
 
     #
     # FINAL PROJECT
@@ -285,7 +285,6 @@ def main():
         elif current_state == "SM_FIND_OBJECT":
             print("Tratando de encontrar objeto: " + requested_object)
             obj_kinect_x,obj_kinect_y,obj_kinect_z = find_object(requested_object)
-            print("Posicion de objeto visto desde el kinect: " + str([obj_kinect_x,obj_kinect_y,obj_kinect_z]))
             current_state = "SM_KINEMATICS"
 
         #Quinto estado
@@ -293,22 +292,45 @@ def main():
             #Para las pringles 
             if requested_object == "pringles":
                 #Obteniendo posicion real
-                obj_real_x,obj_real_y,obj_real_z = transform_point_to_left_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
-                print("Posicion de objeto desde la referencia correcta: " + str([obj_real_x,obj_real_y,obj_real_z]))
-                #Cinematica inversa
-                print("Valores de articulaciones con cinematica inversa: ")
-                obj_q1,obj_q2,obj_q3,obj_q4,obj_q5,obj_q6,obj_q7 = ik_left_arm(obj_real_x,obj_real_y,obj_real_z)
+                #obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
+                #print("Posicion de objeto desde la referencia del brazo derecho:")
+                #print(str([obj_real_x,obj_real_y,obj_real_z]))
+                #print("Valores de articulaciones con cinematica inversa: ")
+                #obj_q1,obj_q2,obj_q3,obj_q4,obj_q5,obj_q6,obj_q7 = ik_left_arm(obj_real_x,obj_real_y,obj_real_z)
                 #Mover brazo izquierdo
                 current_state = "SM_MLA"
             else:
-                obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
-                print("Posicion de objeto desde la referencia correcta: " + str([obj_real_x,obj_real_y,obj_real_z]))
+                #obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
+                #print("Posicion de objeto desde la referencia del brazo derecho:")
+                #print(str([obj_real_x,obj_real_y,obj_real_z]))
                 #Mover brazo derecho
                 #Cinematica inversa
-                print("Valores de articulaciones con cinematica inversa: ")
-                obj_q1,obj_q2,obj_q3,obj_q4,obj_q5,obj_q6,obj_q7 = ik_right_arm(obj_real_x,obj_real_y,obj_real_z)
+                #print("Valores de articulaciones con cinematica inversa: ")
+                #obj_q1,obj_q2,obj_q3,obj_q4,obj_q5,obj_q6,obj_q7 = ik_right_arm(obj_real_x,obj_real_y,obj_real_z)
                 #Mover brazo derecho
                 current_state = "SM_MRA" 
+        
+        #Mover brazo izquierdo
+        elif current_state == "SM_MLA":
+            #Sequence
+
+            #Acomodando el brazo
+            q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.20,-0.05,-0.30)
+            move_left_arm(q1,q2,q3,q4,q5,q6,q7)
+            move_left_gripper(0.7)
+            #Acercando el brazo
+            q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.40,-0.05,-0.30)
+            move_left_arm(q1,q2,q3,q4,q5,q6,q7)
+            move_left_gripper(-0.3)
+            #Alejando el brazo de la mesa
+            q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.10,-0.05,-0.30)
+            move_left_arm(q1,q2,q3,q4,q5,q6,q7)
+
+            current_state = "SM_INIT_MOVE"
+        
+        elif current_state == "SM_MRA":
+
+            current_state = "SM_INIT_MOVE"
 
 
         loop.sleep()
