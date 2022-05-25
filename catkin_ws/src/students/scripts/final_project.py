@@ -315,7 +315,7 @@ def main():
             #Sequence
 
             #Acomodando el brazo
-            q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.20,-0.05,-0.30)
+            q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.20,-0.05,-0.25)
             move_left_arm(q1,q2,q3,q4,q5,q6,q7)
             move_left_gripper(0.7)
             #Acercando el brazo
@@ -323,7 +323,7 @@ def main():
             move_left_arm(q1,q2,q3,q4,q5,q6,q7)
             move_left_gripper(-0.3)
             #Alejando el brazo de la mesa
-            q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.10,-0.05,-0.30)
+            q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.20,-0.05,-0.25)
             move_left_arm(q1,q2,q3,q4,q5,q6,q7)
 
             current_state = "SM_INIT_MOVE"
