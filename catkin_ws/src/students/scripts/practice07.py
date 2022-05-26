@@ -42,11 +42,13 @@ def segment_by_color(img_bgr, points, obj_name):
     #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
     #   the pixel in the center of the image.
     #
+    x,y,z=0,0,0
     for[[c,r]] in idx:
-       x,y,z=x+points[r,c][0],y+points[r,c][1],z+points[r,c][2]
-    x,y,z=x/len(idx),y/len(idx),z/len(idx)
-    
-    
+        if math.isnan(points[r,c][0])&math.isnan(points[r,c][1])&math.isnan(points[r,c][2]):
+                return 0
+        else:
+                x,y,z=x+points[r,c][0],y+points[r,c][1],z+points[r,c][2]
+    x,y,z=x/len(idx),y/len(idx),z/len(idx)  
     return [mean_coords [0],mean_coords[1],x,y,z]
 
 def callback_find_object(req):
