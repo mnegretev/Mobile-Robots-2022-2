@@ -244,6 +244,8 @@ def main():
     obj_real_x = 0
     obj_real_y = 0
     obj_real_z = 0
+    #Cinematica inversa
+    q = 0
 
     #
     # FINAL PROJECT
@@ -262,7 +264,8 @@ def main():
             if new_task:
                 requested_object, requested_location = parse_command(recognized_speech)
                 print("Nuevo comando: " + requested_object + " to  " + str(requested_location))
-                say("Comando a ejecutar: " + recognized_speech)
+                print("Comando: " + recognized_speech)
+                say(recognized_speech)
                 current_state = "SM_MHEAD"
                 new_task = False
                 executing_task = True
@@ -276,7 +279,7 @@ def main():
         #Cuarto estado
         elif current_state == "SM_FIND_OBJECT":
             print("Tratando de encontrar objeto: " + requested_object)
-            obj_kinect_x,obj_kinect_y,obj_kinect_z = find_object(requested_object)
+            obj_kinect_x , obj_kinect_y, obj_kinect_z = find_object(requested_object)
             current_state = "SM_KINEMATICS"
 
         #Quinto estado
@@ -284,11 +287,12 @@ def main():
             #Para las pringles 
             if requested_object == "pringles":
                 #Obteniendo posicion real
-                obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
+                obj_real_x,obj_real_y,obj_real_z = transform_point_to_left_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
                 print("Posicion de objeto desde la referencia del brazo izquierdo:")
                 print(str([obj_real_x,obj_real_y,obj_real_z]))
-                #print("Valores de articulaciones con cinematica inversa: ")
-                #obj_q1,obj_q2,obj_q3,obj_q4,obj_q5,obj_q6,obj_q7 = ik_left_arm(obj_real_x,obj_real_y,obj_real_z)
+                print("Valores de articulaciones con cinematica inversa: ")
+                #q = ik_left_arm(obj_real_x,obj_real_y,obj_real_z)
+                #print(q)
                 #Mover brazo izquierdo
                 current_state = "SM_MLA"
             #Para drink
@@ -376,7 +380,7 @@ def main():
                 move_right_gripper(0.0)
                 q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.20,0.05,-0.25)
                 move_right_arm(q1,q2,q3,q4,q5,q6,q7)
-            go_to_goal_pose(3.32,5.86)
+            go_to_goal_pose(3.32,6.0)
             print("Regresando a casa...")
             goal_reached = False
             current_state = "SM_WAIT_RETURN"
