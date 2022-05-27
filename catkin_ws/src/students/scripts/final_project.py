@@ -291,7 +291,7 @@ def main():
                 print("Posicion de objeto desde la referencia del brazo izquierdo:")
                 print(str([obj_real_x,obj_real_y,obj_real_z]))
                 print("Valores de articulaciones con cinematica inversa: ")
-                q = ik_left_arm(obj_real_x + 0.1 ,obj_real_y,obj_real_z) #Ajuste
+                q = ik_left_arm(obj_real_x + 0.1 ,obj_real_y,obj_real_z +0.05) #Ajuste
                 #Mover brazo izquierdo
                 current_state = "SM_MLA"
             #Para drink
@@ -300,7 +300,7 @@ def main():
                 print("Posicion de objeto desde la referencia del brazo derecho:")
                 print(str([obj_real_x,obj_real_y,obj_real_z]))
                 print("Valores de articulaciones con cinematica inversa: ")
-                q = ik_right_arm(obj_real_x + 0.1 ,obj_real_y,obj_real_z) #Ajuste
+                q = ik_right_arm(obj_real_x + 0.1 ,obj_real_y,obj_real_z + 0.05) #Ajuste
                 #Mover brazo derecho
                 current_state = "SM_MRA" 
         
@@ -375,19 +375,18 @@ def main():
                 move_right_gripper(0.0)
                 q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.20,0.05,-0.25)
                 move_right_arm(q1,q2,q3,q4,q5,q6,q7)
-            go_to_goal_pose(3.32,5.93)
+            go_to_goal_pose(3.29,5.81)
             print("Regresando a casa...")
             goal_reached = False
-            current_state = "SM_WAIT_RETURN"
+            current_state = "SM_FINAL"
         
         #Se regresa y ajusta posicion
-        elif current_state == "SM_WAIT_RETURN":
+        elif current_state == "SM_FINAL":
             if goal_reached == True:
                 print("Se regreso a casa...")
                 goal_reached = False
-                print("Ajustando posicion...")
-                move_base(0.2,0,1.3)
-                current_state = "SM_INIT"
+                print("--FIN DEL RECORRIDO--")
+                current_state = "#"
                 executing_task = False
 
 
