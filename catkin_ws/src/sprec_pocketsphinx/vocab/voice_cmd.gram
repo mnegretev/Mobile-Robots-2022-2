@@ -6,10 +6,9 @@
 
 grammar voice_cmd;
 
-public <move> = MOVE FORWARD;
+public <move2> = (ROBOT TAKE THE <object> TO THE <place>);
 
-public <move2> = STOP | MOVE <direction> [<speed>];
+<object> = PRINGLES | DRINK;
 
-<direction> = FORWARD | BACK | LEFT | RIGHT;
+<place> = KITCHEN | TABLE;
 
-<speed> = FULL SPEED | HALF SPEED;

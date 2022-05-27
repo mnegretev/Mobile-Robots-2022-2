@@ -157,6 +157,53 @@ def say(text):
     pubSay.publish(msg)
     time.sleep(2)
 
+def transform_point_to_left_arm(x,y,z):
+    listener = tf.TransformListener()
+    listener.waitForTransform("shoulders_left_link", "kinect_link", rospy.Time(), rospy.Duration(4.0))
+    obj_p = PointStamped()
+    obj_p.header.frame_id = "kinect_link"
+    obj_p.header.stamp = rospy.Time(0)
+    obj_p.point.x, obj_p.point.y, obj_p.point.z = x,y,z
+    target_frame = "shoulders_left_link"
+    obj_p = listener.transformPoint(target_frame, obj_p)
+    return obj_p.point.x, obj_p.point.y, obj_p.point.z
+
+def transform_point_to_right_arm(x,y,z):
+    listener = tf.TransformListener()
+    listener.waitForTransform("shoulders_left_link", "kinect_link", rospy.Time(), rospy.Duration(4.0))
+    obj_p = PointStamped()
+    obj_p.header.frame_id = "kinect_link"
+    obj_p.header.stamp = rospy.Time(0)
+    obj_p.point.x, obj_p.point.y, obj_p.point.z = x,y,z
+    target_frame = "shoulders_right_link"
+    obj_p = listener.transformPoint(target_frame, obj_p)
+    return obj_p.point.x, obj_p.point.y, obj_p.point.z
+
+def find_object(obj_name):
+    clt_find_object = rospy.ServiceProxy("/vision/find_object", FindObject)
+    req_find_object = FindObjectRequest()
+    req_find_object.cloud = rospy.wait_for_message("/kinect/points", PointCloud2)
+    req_find_object.name  = obj_name
+    resp_find_object = clt_find_object(req_find_object)
+    print("Object found at: " + str([resp_find_object.x, resp_find_object.y, resp_find_object.z]))
+    return resp_find_object.x, resp_find_object.y, resp_find_object.z
+
+def ik_left_arm(x,y,z):
+    clt_la_inverse_kin = rospy.ServiceProxy("/manipulation/la_inverse_kinematics", InverseKinematics)
+    req_ik = InverseKinematicsRequest()
+    req_ik.x, req_ik.y, req_ik.z = x,y,z
+    req_ik.roll, req_ik.pitch, req_ik.yaw = 3.0, -1.57, -3.0
+    resp_ik = clt_la_inverse_kin(req_ik)
+    return resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7
+
+def ik_right_arm(x,y,z):
+    clt_ra_inverse_kin = rospy.ServiceProxy("/manipulation/ra_inverse_kinematics", InverseKinematics)
+    req_ik = InverseKinematicsRequest()
+    req_ik.x, req_ik.y, req_ik.z = x,y,z
+    req_ik.roll, req_ik.pitch, req_ik.yaw = 3.0, -1.57, -3.0
+    resp_ik = clt_ra_inverse_kin(req_ik)
+    return resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7
+
 def main():
     global new_task, recognized_speech, executing_task, goal_reached
     global pubLaGoalPose, pubRaGoalPose, pubHdGoalPose, pubLaGoalGrip, pubRaGoalGrip
@@ -211,16 +258,48 @@ def main():
 
 	elif current_state == "SM_MOVE_HEAD":
 	    say("Executing 2")
-	    move_head(0,-0.7)
+	    move_head(0,-1)
 	    executing_task = "False"
-	    current_state = "SM_pringles"
+	    current_state = "SM_INIT_LEFT"
 
-	elif current_state == "SM_pringles":
-	    go_to_goal_pose(3,3)
+	elif current_state == "SM_INIT_LEFT":
 	    say("Executing 3")
+	    move_left_arm(-0.5, 0, 0.2, 2.1, 0, 0, 0)
+	    move_left_gripper(0.5)
+	    executing_task = "False"
+	    current_state = "SM_object"
+
+	elif current_state == "SM_object":
+	    x, y, z = 0.0, 0.0, 0.0
+	    x, y, z = find_object("pringles")
+	    xt, yt, zt = transform_point_to_left_arm(x,y,z)
+            print(xt,yt,zt)
+	    say("Transformation")
+	    q = ik_left_arm(xt, yt, zt)
+	    move_left_arm(q[0], q[1], q[2], q[3], q[4], q[5], q[6])
+	    say("Executing 4")
+	    move_left_gripper(-0.4)
     	    executing_task = "False"
- 	    if goal_reached == "True":
-	        current_state = "SM_SAY_HELLO"
+	    current_state = "SM_move_left"
+
+	elif current_state == "SM_move_left":
+	    say("Executing 5")
+	    move_left_arm(q1,q2,q3,q4,q5,q6,q7)
+    	    executing_task = "False"
+	    current_state = "SM_BACK"
+
+	elif current_state == "SM_BACK":
+	    say("Executing 6")
+	    move_base(-0.5, 0, 5)
+	    executing_task = "False"
+	    current_state = "SM_avanzar"	
+
+	elif current_state == "SM_avanzar":
+	    go_to_goal_pose(3.2,5.8)
+	    say("Executing 7")
+    	    executing_task = "False"
+	    if goal_reached == "True":
+	        current_state = "SM_INIT"
 
         loop.sleep()
 
