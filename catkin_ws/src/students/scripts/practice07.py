@@ -41,17 +41,17 @@ def segment_by_color(img_bgr, points, obj_name):
     img_bin = cv2.inRange(img_hsv, lower_limit, upper_limit)
     idx = cv2.findNonZero(img_bin)
     #Variables
-    [img_x, img_y, a, b] = cv2.mean(idx)
+    [xvalue, yvalue, a, b] = cv2.mean(idx)
     [x,y,z] = [0,0,0]
     counter = 0
     #Centroids and position
     for [[c, r]] in idx:
-        xt, yt, zt = points[r,c][0], points[r,c][1], points[r,c][2]
-        if math.isnan(xt) or math.isnan(yt) or math.isnan(zt):
+        xaux, yaux, zaux = points[r,c][0], points[r,c][1], points[r,c][2]
+        if math.isnan(xaux) or math.isnan(yaux) or math.isnan(zaux):
             continue
-        [x,y,z,counter] = [x+xt, y+yt, z+zt, counter+1]
+        [x,y,z,counter] = [x+xaux, y+yaux, z+zaux, counter+1]
     [x,y,z] = [x/counter, y/counter, z/counter] if counter > 0 else [0,0,0]
-    return [img_x, img_y, x,y,z]
+    return [xvalue, yvalue, x,y,z]
 
 def callback_find_object(req):
     global pub_point, img_bgr
