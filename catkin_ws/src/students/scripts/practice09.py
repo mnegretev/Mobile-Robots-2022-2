@@ -14,10 +14,10 @@ import numpy
 import rospy
 import rospkg
 
-NAME = "FULL_NAME"
+NAME = "Toriz_Poblano_Alejandra_Elizabth"
 
 class NeuralNetwork(object):
-    def __init__(self, layers, weights=None, biases=None):
+    def _init_(self, layers, weights=None, biases=None):
         #
         # The list 'layers' indicates the number of neurons in each layer.
         # Remember that the first layer indicates the dimension of the inputs and thus,
@@ -49,6 +49,11 @@ class NeuralNetwork(object):
         # Include input x as the first output.
         #
         y = []
+        y.append(x)
+        for i in range(len(self.layer_sizes)-1):
+          u=numpy.dot(self.weights[i],x)+self.biases[i]
+          x=1.0/(1.0+numpy.exp(-u))
+          y.append(x)
         return y
 
     def backpropagate(self, x, yt):
@@ -63,15 +68,22 @@ class NeuralNetwork(object):
         # self.weights and self.biases
         # You can calculate the gradient following these steps:
         #
-        # Calculate delta for the output layer L: delta=(yL-yt)*yL*(1-yL)
+        # Calculate delta for the output layer L: delta=(yL-yt)yL(1-yL)
         # nabla_b of output layer = delta      
         # nabla_w of output layer = delta*yLpT where yLpT is the transpose of the ouput vector of layer L-1
         # FOR all layers 'l' from L-1 to input layer: 
-        #     delta = (WT * delta)*yl*(1 - yl)
+        #     delta = (WT * delta)yl(1 - yl)
         #     where 'WT' is the transpose of the matrix of weights of layer l+1 and 'yl' is the output of layer l
         #     nabla_b[-l] = delta
         #     nabla_w[-l] = delta*ylpT  where ylpT is the transpose of outputs vector of layer l-1
-        #        
+        # 
+        delta=(y[-1]-yt)y[-1](1-y[-1])
+        nabla_b[-1]=delta
+        nabla_w[-1]=delta*numpy.transpose(y[-2])
+        for i in range (2,len(self.layer_sizes)):
+          delta=numpy.dot(numpy.transpose(self.weights[-i+1]),delta)y[-i](1-y[-i])
+          nabla_b[-i]=delta
+          nabla_w[-i]=delta*numpy.transpose(y[-i-1])      
         return nabla_w, nabla_b
 
     def update_with_batch(self, batch, eta):
@@ -172,5 +184,5 @@ def main():
         cmd = cv2.waitKey(0)
     
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     main()
