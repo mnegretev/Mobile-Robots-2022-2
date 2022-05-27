@@ -291,8 +291,7 @@ def main():
                 print("Posicion de objeto desde la referencia del brazo izquierdo:")
                 print(str([obj_real_x,obj_real_y,obj_real_z]))
                 print("Valores de articulaciones con cinematica inversa: ")
-                #q = ik_left_arm(obj_real_x,obj_real_y,obj_real_z)
-                #print(q)
+                q = ik_left_arm(obj_real_x + 0.1 ,obj_real_y,obj_real_z) #Ajuste
                 #Mover brazo izquierdo
                 current_state = "SM_MLA"
             #Para drink
@@ -300,10 +299,8 @@ def main():
                 obj_real_x,obj_real_y,obj_real_z = transform_point_to_right_arm(obj_kinect_x,obj_kinect_y,obj_kinect_z)
                 print("Posicion de objeto desde la referencia del brazo derecho:")
                 print(str([obj_real_x,obj_real_y,obj_real_z]))
-                #Mover brazo derecho
-                #Cinematica inversa
-                #print("Valores de articulaciones con cinematica inversa: ")
-                #obj_q1,obj_q2,obj_q3,obj_q4,obj_q5,obj_q6,obj_q7 = ik_right_arm(obj_real_x,obj_real_y,obj_real_z)
+                print("Valores de articulaciones con cinematica inversa: ")
+                q = ik_right_arm(obj_real_x + 0.1 ,obj_real_y,obj_real_z) #Ajuste
                 #Mover brazo derecho
                 current_state = "SM_MRA" 
         
@@ -316,8 +313,7 @@ def main():
             move_left_arm(q1,q2,q3,q4,q5,q6,q7)
             move_left_gripper(0.7)
             #Acercando el brazo
-            q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.40,-0.05,-0.30)
-            move_left_arm(q1,q2,q3,q4,q5,q6,q7)
+            move_left_arm(q[0],q[1],q[2],q[3],q[4],q[5],q[6])
             move_left_gripper(-0.3)
             #Alejando el brazo de la mesa
             q1,q2,q3,q4,q5,q6,q7 = ik_left_arm(0.20,-0.05,-0.25)
@@ -334,8 +330,7 @@ def main():
             move_right_arm(q1,q2,q3,q4,q5,q6,q7)
             move_right_gripper(0.7)
             #Acercando el brazo
-            q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.40,0.05,-0.37)
-            move_right_arm(q1,q2,q3,q4,q5,q6,q7)
+            move_right_arm(q[0],q[1],q[2],q[3],q[4],q[5],q[6])
             move_right_gripper(-0.3)
             #Alejando el brazo de la mesa
             q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.20,0.05,-0.25)
@@ -380,7 +375,7 @@ def main():
                 move_right_gripper(0.0)
                 q1,q2,q3,q4,q5,q6,q7 = ik_right_arm(0.20,0.05,-0.25)
                 move_right_arm(q1,q2,q3,q4,q5,q6,q7)
-            go_to_goal_pose(3.32,6.0)
+            go_to_goal_pose(3.32,5.93)
             print("Regresando a casa...")
             goal_reached = False
             current_state = "SM_WAIT_RETURN"
