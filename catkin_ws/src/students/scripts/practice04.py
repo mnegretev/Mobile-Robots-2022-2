@@ -37,7 +37,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # v and w are the linear and angular speeds taken as input signals
     # and v_max, w_max, alpha and beta, are tunning constants.
 
-    v_max = 0.4
+    v_max = 0.3
     w_max = 0.5
     alpha = 0.1
     beta  = 0.1
