@@ -1,0 +1,17 @@
+#JSGF V1.0;
+
+/**
+ * JSGF Grammar similar to kws example
+ */
+
+grammar voice_cmd;
+
+public <move> = STOP;
+
+public <move2> = ROBOT | TAKE THE <thing> | TO THE <place>;
+
+<thing> = PRINGLES | DRINK;
+
+<place> = KITCHEN | TABLE;
+
+
