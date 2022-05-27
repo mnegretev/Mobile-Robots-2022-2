@@ -385,7 +385,9 @@ def main():
             if goal_reached == True:
                 print("Se regreso a casa...")
                 goal_reached = False
+                print("---------------------")
                 print("--FIN DEL RECORRIDO--")
+                print("---------------------")
                 current_state = "#"
                 executing_task = False
 
