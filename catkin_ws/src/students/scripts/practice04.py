@@ -114,6 +114,7 @@ def follow_path(path):
       	global_error = math.sqrt((global_x-robot_x)**2+ (global_y-robot_y)**2)
  
     pub_cmd_vel.publish(Twist())
+    pub_goal_reached.publish(True) 
 
     return
     
