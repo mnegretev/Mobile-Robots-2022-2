@@ -30,45 +30,28 @@ def segment_by_color(img_bgr, points, obj_name):
     #   If obj_name == 'pringles': [25, 50, 50] - [35, 255, 255]
     #   otherwise                : [10,200, 50] - [20, 255, 255]
     if obj_name == "pringles":
-        upper_limit = [35,255,255]
-        lower_limit = [25,50,50]
+        upper_limit = numpy.array([35,255,255])
+        lower_limit = numpy.array([25,50,50])
     else:
-        upper_limit = [20,255,255]
-        lower_limit = [10,200,50]
+        upper_limit = numpy.array([20,255,255])
+        lower_limit = numpy.array(([10,200,50]))
     # - Change color space from RGB to HSV.
     #   Check online documentation for cv2.cvtColor function
     img_hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
-    # - Determine the pixels whose color is in the selected color range.
-    #   Check online documentation for cv2.inRange
-    img_bin = cv2.inRange(img_hsv, numpy.array(lower_limit), numpy.array(upper_limit))
-    # - Calculate the centroid of all pixels in the given color range (ball position).
-    #   Check online documentation for cv2.findNonZero and cv2.mean
-    nz = cv2.findNonZero(img_bin)
-    mean = cv2.mean(nz)
-    # - Calculate the centroid of the segmented region in the cartesian space
-    #   using the point cloud 'points'. Use numpy array notation to process the point cloud data.
-    #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
-    #   the pixel in the center of the image.
-    #
-    x, y, z = 0, 0, 0
-
-    for m in nz:
-        #  Verificacion de nulos
-        #  findNonZero te lo da en formato c,r
-        [[c,r]] = m
-        if math.isnan(points[r,c][0]) or math.isnan(points[r, c][1]) or math.isnan(points[r, c][2]):
-            pass
-        else:
-            x = x + points[r,c][0]
-            y = y + points[r,c][1]
-            z = z + points[r,c][2]
-    
-    #   Centroides
-    x = x / len(nz)
-    y = y / len(nz)
-    x = z / len(nz)
-
-    return [mean[0],mean[1],x,y,z]
+    img_bin = cv2.inRange(img_hsv, lower_limit, upper_limit)
+    idx = cv2.findNonZero(img_bin)
+    #Variables
+    [img_x, img_y, a, b] = cv2.mean(idx)
+    [x,y,z] = [0,0,0]
+    counter = 0
+    #Centroids and position
+    for [[c, r]] in idx:
+        xt, yt, zt = points[r,c][0], points[r,c][1], points[r,c][2]
+        if math.isnan(xt) or math.isnan(yt) or math.isnan(zt):
+            continue
+        [x,y,z,counter] = [x+xt, y+yt, z+zt, counter+1]
+    [x,y,z] = [x/counter, y/counter, z/counter] if counter > 0 else [0,0,0]
+    return [img_x, img_y, x,y,z]
 
 def callback_find_object(req):
     global pub_point, img_bgr
@@ -84,6 +67,7 @@ def callback_find_object(req):
     cv2.circle(img_bgr, (int(r), int(c)), 20, [0, 255, 0], thickness=3)
     resp = FindObjectResponse()
     resp.x, resp.y, resp.z = x, y, z
+    print(str([resp.x,resp.y,resp.z]))
     return resp
 
 def main():
