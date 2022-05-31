@@ -408,7 +408,7 @@ def main():
                 move_right_gripper(-0.7)
                 move_right_arm(0,0,0,0,0,0,0)
 		move_base(-0.3, 0, 3.0)
-            go_to_goal_pose(2.39, 6.56)
+            go_to_goal_pose(3.39, 6.56)
             goal_reached = False
             say("I'll be back")
             current_state = "SM_WAIT_FOR_RETURN"
@@ -421,7 +421,7 @@ def main():
                 current_state = "SM_APPROACH_TO_TABLE"
 
         elif current_state == "SM_APPROACH_TO_TABLE":
-            go_to_goal_pose(3.39, 5.56)
+            go_to_goal_pose(3.39, 5.76)
             goal_reached = False
             current_state = "SM_WAIT_FOR_APPROACHING"
 
@@ -433,7 +433,6 @@ def main():
                 current_state = "SM_INIT"
                 executing_task = False
         loop.sleep()
-	#rospy.spin()
 
 if __name__ == '__main__':
     try:
