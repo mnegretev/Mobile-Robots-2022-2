@@ -63,6 +63,7 @@ geometry_msgs::PoseArray get_initial_distribution(int N, float min_x, float max_
         particles.poses[i].orientation.z = sin(a/2);
      }
      return particles;
+ 
 }
 
 std::vector<sensor_msgs::LaserScan> simulate_particle_scans(geometry_msgs::PoseArray& particles, nav_msgs::OccupancyGrid& map)
@@ -203,8 +204,6 @@ void move_particles(geometry_msgs::PoseArray& particles, float delta_x, float de
         
         //Hacer lo mismo, pero no igual, para 'y'
         particles.poses[i].position.y += delta_x*cos(a) - delta_y*sin(a) + rnd.gaussian(0,MOVEMENT_NOISE);
-
-        a += delta_t + rnd.gaussian(0,MOVEMENT_NOISE);
 
         //Para 'w'
         particles.poses[i].orientation.w = cos(a/2);

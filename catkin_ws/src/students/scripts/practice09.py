@@ -14,7 +14,7 @@ import numpy
 import rospy
 import rospkg
 
-NAME = "FULL_NAME"
+NAME = "Lopez_Gutierrez_Francisco_Emmanuel"
 
 class NeuralNetwork(object):
     def __init__(self, layers, weights=None, biases=None):
@@ -49,6 +49,11 @@ class NeuralNetwork(object):
         # Include input x as the first output.
         #
         y = []
+ 	y.append(x)
+        for i in range(len(self.biases)):
+            z = numpy.dot(self.weights[i], x) + self.biases[i]
+            x = 1.0 / (1.0 + numpy.exp(-z))  #output of the current layer is the input of the next one
+            y.append(x)
         return y
 
     def backpropagate(self, x, yt):
@@ -71,7 +76,14 @@ class NeuralNetwork(object):
         #     where 'WT' is the transpose of the matrix of weights of layer l+1 and 'yl' is the output of layer l
         #     nabla_b[-l] = delta
         #     nabla_w[-l] = delta*ylpT  where ylpT is the transpose of outputs vector of layer l-1
-        #        
+        #   
+        delta = (y[-1] - yt)*y[-1]*(1 - y[-1])
+        nabla_b[-1] = delta
+        nabla_w[-1] = delta*y[-2].transpose()
+        for i in range(2, self.num_layers):
+            delta = numpy.dot(self.weights[-i+1].transpose(), delta)*y[-i]*(1.0 - y[-i])
+            nabla_b[-i] = delta
+            nabla_w[-i] = numpy.dot(delta,y[-i-1].transpose())     
         return nabla_w, nabla_b
 
     def update_with_batch(self, batch, eta):
@@ -94,6 +106,8 @@ class NeuralNetwork(object):
         return nabla_w, nabla_b
 
     def get_gradient_mag(self, nabla_w, nabla_b):
+	n2 = [nw*nw for nw in nabla_w]
+        b2 = [nb*nb for nb in nabla_b]
         mag_w = sum([numpy.sum(n) for n in [nw*nw for nw in nabla_w]])
         mag_b = sum([numpy.sum(b) for b in [nb*nb for nb in nabla_b]])
         return mag_w + mag_b

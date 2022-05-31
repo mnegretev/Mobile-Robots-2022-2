@@ -21,32 +21,38 @@ from custom_msgs.srv import FindObject, FindObjectResponse
 NAME = "Lopez_Gutierrez_Francisco_Emmanuel"
 
 def segment_by_color(img_bgr, points, obj_name):
-    #
-    # TODO:
-    # - Assign lower and upper color limits according to the requested object:
-    if obj_name == 'pringles': 
-    	low = [25, 50, 50]     # Minimum value of hue, saturation and value of pringles.
-        high = [35, 255, 255]  # Maximum value of hue, saturation and value of pringles.
-    else: 
-        low = [10,200, 50]     # Minimum value of hue, saturation and value of soda.
-	high = [20, 255, 255]  # Maximum value of hue, saturation and value of soda.
-    # - Change color space from RGB to HSV.
-    image = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
-    # - Determine the pixels whose color is in the selected color range.
-    image_range = cv2.inRange(image, (low[0], low[1], low[2]), (high[0], high[1], high[2]))
-    # - Calculate the centroid of all pixels in the given color range (ball position).
-    image_nonzeros = cv2.findNonZero(image_range)
-    center = cv2.mean(image_nonzeros)
-    # - Calculate the centroid of the segmented region in the cartesian space
-    #   using the point cloud 'points'. Use numpy array notation to process the point cloud data.
-    #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
-    #   the pixel in the center of the image.
-    x = points[int(center[0]), int(center[1])][0]
-    y = points[int(center[0]), int(center[1])][1]
-    z = points[int(center[0]), int(center[1])][2]
-    #
-    
-    return [center[0],center[1],x,y,z]
+
+    upperLimit = [0]
+    lowerLimit = [0]
+
+    if obj_name == "pringles":
+        upperLimit = [35, 255, 255]
+        lowerLimit = [25, 50, 50]
+    else:
+        upperLimit = [20, 255, 255]
+        lowerLimit = [10, 200, 50]
+   
+    img_hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+    img_bin = cv2.inRange(img_hsv, numpy.array(lowerLimit), numpy.array(upperLimit))
+    nonZero = cv2.findNonZero(img_bin)
+    meanCentroide = cv2.mean(nonZero)
+
+    x, y, z = 0, 0, 0
+
+    for i in nonZero:
+        [[c,r]] = i
+        if math.isnan(points[r,c][0]) or math.isnan(points[r,c][1]) or math.isnan(points[r,c][2]):
+            pass
+        else:
+            x = x + points[r,c][0]
+            y = y + points[r,c][1]
+            z = z + points[r,c][2]
+
+    x = x/len(nonZero)
+    y = y/len(nonZero)
+    z = z/len(nonZero)
+
+    return [meanCentroide[0], meanCentroide[1], x, y, z]
 
 def callback_find_object(req):
     global pub_point, img_bgr
@@ -82,4 +88,3 @@ if __name__ == '__main__':
         main()
     except rospy.ROSInterruptException:
         pass
-

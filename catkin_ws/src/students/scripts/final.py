@@ -129,6 +129,7 @@ def move_base(linear, angular, t):
     pubCmdVel.publish(cmd)
     time.sleep(t)
     pubCmdVel.publish(Twist())
+    time.sleep(3)
 
 #
 # This function publishes a global goal position. This topic is subscribed by
@@ -254,7 +255,7 @@ def main():
         elif current_state == "SM_SAY_HELLO":
             say("Executing 1")
 	    executing_task = "False"
-	    current_state = "SM_MOVE_HEAD"
+            current_state = "SM_MOVE_HEAD"
 
 	elif current_state == "SM_MOVE_HEAD":
 	    say("Executing 2")
@@ -265,7 +266,7 @@ def main():
 	elif current_state == "SM_INIT_LEFT":
 	    say("Executing 3")
 	    move_left_arm(-0.5, 0, 0.2, 2.1, 0, 0, 0)
-	    move_left_gripper(0.5)
+	    move_left_gripper(0.7)
 	    executing_task = "False"
 	    current_state = "SM_object"
 
@@ -275,16 +276,10 @@ def main():
 	    xt, yt, zt = transform_point_to_left_arm(x,y,z)
             print(xt,yt,zt)
 	    say("Transformation")
-	    q = ik_left_arm(xt, yt, zt)
+	    q = ik_left_arm(xt+0.05, yt, zt)
 	    move_left_arm(q[0], q[1], q[2], q[3], q[4], q[5], q[6])
 	    say("Executing 4")
 	    move_left_gripper(-0.4)
-    	    executing_task = "False"
-	    current_state = "SM_move_left"
-
-	elif current_state == "SM_move_left":
-	    say("Executing 5")
-	    move_left_arm(q1,q2,q3,q4,q5,q6,q7)
     	    executing_task = "False"
 	    current_state = "SM_BACK"
 
@@ -295,11 +290,19 @@ def main():
 	    current_state = "SM_avanzar"	
 
 	elif current_state == "SM_avanzar":
-	    go_to_goal_pose(3.2,5.8)
+	    go_to_goal_pose(5.5,9)
 	    say("Executing 7")
     	    executing_task = "False"
-	    if goal_reached == "True":
-	        current_state = "SM_INIT"
+            if callback_goal_reached(msg) == 'True':
+    	        current_state = "SM_regresar"
+		move_left_gripper(0.4)
+
+	elif current_state == "SM_regresar":
+	    go_to_goal_pose(3.2,5)
+	    say("Executing 7")
+    	    executing_task = "False"
+            if callback_goal_reached(msg) == 'True':
+    	        current_state = "SM_regresar"
 
         loop.sleep()
 
