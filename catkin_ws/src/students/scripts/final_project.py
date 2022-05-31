@@ -364,31 +364,24 @@ def main():
 	    say("I'm going to leave the " + requested_object)
             if requested_object == 'pringles':
                 move_left_arm(resp_ik.q1+0.6, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7)
-                move_left_gripper(0.7)
+                move_left_gripper(0.3)
                 move_left_arm(-1.2, 0, 0, 1.8, 0, 0.6, 0) #0.9
                 move_left_gripper(-0.7)
                 move_left_arm(0,0,0,0,0,0,0)
    		#####
    		print("Move backward")
 	       	move_base(-0.3, 0, 3.0)
-   		#if requested_location == [3.13, 9.0] :          
-		#	print("Move backward")
-	       	#	move_base(-0.3, 0, 3.0)
-		#else  :
-		#	move_base(-0.3, 0, 1.0)
             else:
                 move_right_arm(resp_ik.q1+0.6, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7)
-                move_right_gripper(0.7)
+                move_right_gripper(0.3)
                 move_right_arm(-1.2, 0, 0, 1.8, 0, 0.6, 0)
                 move_right_gripper(-0.7)
                 move_right_arm(0,0,0,0,0,0,0)
-                #if requested_location == [3.13, 9.0] :          
 		print("Move backward")
 	       	move_base(-0.3, 0, 3.0)
-		#else  :
-		#	move_base(-0.3, 0, 3.0)
             go_to_goal_pose(3.39, 6.56)
             goal_reached = False
+	    say("I'll be back")
             current_state = "SM_WAIT_FOR_RETURN"
             
             
