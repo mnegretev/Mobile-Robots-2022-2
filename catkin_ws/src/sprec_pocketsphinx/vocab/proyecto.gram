@@ -8,10 +8,12 @@ grammar voice_cmd;
 
 public <move> = MOVE FORWARD;
 
-public <move2> = OKEY | ROBOT <moving> [TO THE] [<object>];
+public <move2> = ROBOT | OKEY <verb> [TO THE] [<object>] <location>;
 
-<moving> = TAKE | MOVE | LEFT | RIGHT;
+<verb> = TAKE | MOVE;
 
 <speed> = FULL SPEED | HALF SPEED;
 
-<object> = PRINGLES | DRINK | TABLE | KITCHEN;
+<object> = PRINGLES | DRINK;
+
+<location> = KITCHEN | TABLE;

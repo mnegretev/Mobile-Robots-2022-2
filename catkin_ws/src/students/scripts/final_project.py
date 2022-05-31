@@ -35,9 +35,11 @@ NAME = "Granados Vargas Nestor Yahir"
 #
 def callback_recognized_speech(msg):
     global recognized_speech, new_task, executing_task
+        
     if executing_task:
         return
     new_task = True
+    print(msg.data)
     recognized_speech = msg.data
 
 #
@@ -50,6 +52,7 @@ def callback_goal_reached(msg):
 def parse_command(cmd):
     obj = "pringles" if "PRINGLES" in cmd else "drink"
     loc = [8.0,8.5] if "TABLE" in cmd else [3.22, 9.72]
+    
     return obj, loc
 
 #
@@ -186,7 +189,8 @@ def find_object(obj_name):
     req_find_object.cloud = rospy.wait_for_message("/kinect/points", PointCloud2)
     req_find_object.name  = obj_name
     resp_find_object = clt_find_object(req_find_object)
-    print("Object found at: " + str([resp_find_object.x, resp_find_object.y, resp_find_object.z]))    
+    
+
     return (resp_find_object.x, resp_find_object.y, resp_find_object.z)
 
 def ik_left_arm(x,y,z):
@@ -248,53 +252,59 @@ def main():
     # FINAL PROJECT
     # 
     #
+    orden=""
+    
     
     while not rospy.is_shutdown():
         if current_state=="SM_INIT":
             print("Inicio de la maquina de estados")
+            #requested_object=callback_recognized_speech
             current_state="SM_SAY_HELLO"
             
         elif current_state=="SM_SAY_HELLO":
             if new_task:
+                requested_object,requested_location=parse_command(recognized_speech)
                 current_state="SM_MOVE_HEAD"
                 new_task=False
                 executing_task=True
 
         elif current_state=="SM_MOVE_HEAD":
             move_head(0,-0.8)
-            move_right_arm(-0.3,0,0,1.8,0,0,0)
-            move_left_arm(-0.3,0,0,2.0,0,0,0)
+            #move_right_arm(-0.3,0,0,1.8,0,0,0)
+            #move_left_arm(-0.3,0,0,2.0,0,0,0)
             #move_base(-0.5,0.0,1.0)
             current_state="SM_FIND_OBJECT"
 
         elif current_state=="SM_FIND_OBJECT":
-            print("Reconociendo objetos")
-            print("Coordenadas de las pringles")
+            print ("Coordenadas de las pringles")
             find_object("pringles")
             print("Coordenadas del pisto")
             find_object("drink")
             say("Found")
-
-            #current_state="SM_MOVE_POSE"
+            time.sleep(1.0)
             current_state="SM_TAKE_OBJECT"
 
         elif current_state=="SM_TAKE_OBJECT":
-            if "ROBOT TAKE PRINGLES" in recognized_speech:
-                transform_point_to_left_arm(resp_find_object.x,resp_find_object.y,resp_find_object.z)
-                ik_left_arm(obj_p.point.x, obj_p.point.y, obj_p.point.z)
-                move_left_arm(resp_ik.q1,resp_ik.q2,resp_ik.q3,resp_ik.q4,resp_ik.q5,resp_ik.q6,resp_ik.q7)
-            elif "ROBOT TAKE DRINK" in recognized_speech:
-                transform_point_to_right_arm(resp_find_object.x,resp_find_object.y,resp_find_object.z)
-                ik_right_arm(obj_p.point.x, obj_p.point.y, obj_p.point.z)
-                move_right_arm(resp_ik.q1,resp_ik.q2,resp_ik.q3,resp_ik.q4,resp_ik.q5,resp_ik.q6,resp_ik.q7)
+            print ("Entrando al estado para tomar los objetos")
+            if  requested_object== "pringles":
+                xf,yf,zf=find_object("pringles")
+                xt,yt,zt=transform_point_to_left_arm(xf,yf,zf)
+                print("transformada del brazo",transform_point_to_left_arm)
+                xk,yk,zk=ik_left_arm(xt,yt,zt)
+                q1m,q2m,q3m,q4m,q5m,q6m,q7m=move_left_arm(q[1],q[2],q[3],q[4],q[5],q[6],q[7])
+                print ("coordenadas del brazo",move_left_arm)
             current_state="SM_MOVE_POSE"
             
         elif current_state=="SM_MOVE_POSE":
             move_head(0.0,0.0)
-            if "ROBOT MOVE TO THE TABLE" in recognized_speech:
+            if "ROBOT MOVE TO THE TABLE" == recognized_speech:
                 go_to_goal_pose(3.4,9)
-            elif "ROBOT MOVE TO THE KITCHEN" in recognized_speech:
+            elif "ROBOT MOVE TO THE KITCHEN" == recognized_speech:
                 go_to_goal_pose(6,6.2)
+            current_state="SM_MOVE_HOME"
+            
+        #elif current_state=="SM_MOVE_HOME":
+            #go_to_goal_pose()
 
             executing_task=False
                         
