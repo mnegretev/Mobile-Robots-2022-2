@@ -45,18 +45,18 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     #Constantes para el modelo del control
     alpha = 0.1
     beta = 0.1
-    #Cosntantes de velocidad
-    v_max = 0.3
+    #Constantes de velocidad
+    v_max = 0.4
     w_max = 0.5
     #Error para el angulo
-    error_a = (math.atan2(goal_y - robot_y, goal_x - robot_x)) - robot_a
+    error_a = math.atan2((goal_y - robot_y),(goal_x - robot_x)) - robot_a
     if(error_a > math.pi):
 	error_a = error_a-2*math.pi
     if(error_a < -math.pi):
 	error_a = error_a+2*math.pi
     #Leyes de control
-    v = v_max*math.exp(-error_a*error_a/Alpha)
-    w = w_max*(2/(1+math.exp(-error_a/Beta))-1)
+    v = v_max*math.exp(-error_a*error_a/alpha)
+    w = w_max*(2/(1+math.exp(-error_a/beta))-1)
 
     cmd_vel.linear.x = v
     cmd_vel.angular.z = w
@@ -106,6 +106,7 @@ def follow_path(path):
             [local_x, local_y] = path[idx]
         global_error = math.sqrt((global_x - robot_x)**2 + (global_y - robot_y)**2)
     pub_cmd_vel.publish(Twist())
+    pub_goal_reached.publish(True)
     
     return
     
@@ -118,7 +119,7 @@ def callback_global_goal(msg):
     path = rospy.ServiceProxy('/path_planning/smooth_path',SmoothPath)(SmoothPathRequest(path=path)).smooth_path
     print "Following path with " + str(len(path.poses)) + " points..."
     follow_path([[p.pose.position.x, p.pose.position.y] for p in path.poses])
-    print "Global goal point reached"
+    print("Global goal point reached")
 
 def get_robot_pose(listener):
     try:

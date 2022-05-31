@@ -69,7 +69,7 @@ def a_star(start_r, start_c, goal_r, goal_c, grid_map, cost_map):
                 in_open_list[r,c] = True
 
     if [row,col] != [goal_r, goal_c]:
-        print("Cant calculate path.")
+        print("Cannot calculate path.")
         return[]
     print("Path calculated succesfully.")
 

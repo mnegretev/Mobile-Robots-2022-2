@@ -26,6 +26,7 @@
   <node name="practice07" pkg="students" type="practice07.py" output="screen"/>
   <node name="practice08" pkg="students" type="practice08.py" output="screen"/>
   <!--TODO: Add the node of the your final project -->
+
   <!--TODO: Change grammar and dictionary for the ones of your final project -->
   <node name="speech_recog" pkg="sprec_pocketsphinx" type="asr.py" output="screen">
     <param name="gram" value="$(find sprec_pocketsphinx)/vocab/voice_cmd.gram"/>

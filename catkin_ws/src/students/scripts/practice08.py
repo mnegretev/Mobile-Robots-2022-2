@@ -64,13 +64,13 @@ def forward_kinematics(q, Ti, Wi):
     #     http://docs.ros.org/en/jade/api/tf/html/python/transformations.html
     #
     H= tft.identity_matrix()
-    for i in range(len(q)):
-      H=tft.concatenate_matrices(H,Ti[i],tft.rotation_matrix(q[i],Wi[i]))
-      H=tft.concatenate_matrices(H,Ti[7])
+    for iterador in range(len(q)):
+        H=tft.concatenate_matrices(H,Ti[iterador],tft.rotation_matrix(q[iterador],Wi[iterador]))
+    H=tft.concatenate_matrices(H,Ti[7])
 
-
+    
     x,y,z = H[0][3],H[1][3],H[2][3]  # Get xyz from resulting H
-    R,P,Y = tft.euler_from_matrix(H,'rxyz')   # Get RPY from resulting H
+    R,P,Y = tft.euler_from_matrix(H,'rxyz')  # Get RPY from resulting H
     return numpy.asarray([x,y,z,R,P,Y])
 
 def jacobian(q, Ti, Wi):
@@ -100,9 +100,9 @@ def jacobian(q, Ti, Wi):
     J = numpy.asarray([[0.0 for a in q] for i in range(6)])            # J 6x7 full of zeros
     qn = numpy.asarray([q,]*len(q)) + delta_q*numpy.identity(len(q))   # q_next as indicated above
     qp = numpy.asarray([q,]*len(q)) - delta_q*numpy.identity(len(q))   # q_prev as indicated above
+    
     for i in range(0,7):
         J[:,i]=(forward_kinematics(qn[i,:],Ti,Wi)-forward_kinematics(qp[i,:],Ti,Wi))/(2*delta_q)
-    
     return J
 
 def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
@@ -153,14 +153,16 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, Ti, Wi):
             elif q[i] <(-math.pi):
                 q[i]+=2*math.pi
 
-	p = forward_kinematics(q,Ti,Wi)
-	error = p-pd
-	iterations+=1
-    if(iterations < max_iterations):
-    	return q
+        p=forward_kinematics(q,Ti,Wi)
+        error=p-pd
+
+        iterations+=1
+
+    if(iterations <max_iterations):
+        return q
 
     else:  
-    	return None
+        return None
 
 def callback_la_ik_for_pose(req):
     global transforms, joints

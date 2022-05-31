@@ -62,6 +62,7 @@ def segment_by_color(img_bgr, points, obj_name):
     	x = x/i 
 	y = y/i 
 	z = z/i
+        print("Object found")
     else: 
 	x=0
 	y=0

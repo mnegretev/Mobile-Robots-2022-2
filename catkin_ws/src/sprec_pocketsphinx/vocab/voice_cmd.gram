@@ -8,8 +8,8 @@ grammar voice_cmd;
 
 public <move> = MOVE FORWARD;
 
-public <move2> = STOP | MOVE <direction> [<speed>];
+public <move2> = TAKE THE <object> TO THE <location>;
 
-<direction> = FORWARD | BACK | LEFT | RIGHT;
+<object> = PRINGLES | DRINK;
 
-<speed> = FULL SPEED | HALF SPEED;
+<location> = TABLE | KITCHEN;
