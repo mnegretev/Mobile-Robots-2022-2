@@ -12,6 +12,7 @@
 import rospy
 import tf
 import math
+import time
 from std_msgs.msg import Bool
 from nav_msgs.msg import Path
 from nav_msgs.srv import GetPlan, GetPlanRequest
@@ -112,7 +113,8 @@ def follow_path(path):
     pub_cmd_vel.publish(Twist())
 
     # Publish a 'True' using the pub_goal_reached publisher
-    #
+    
+    pub_goal_reached.publish(True)
 
     return
     

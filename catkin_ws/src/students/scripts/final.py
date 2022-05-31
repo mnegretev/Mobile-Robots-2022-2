@@ -156,7 +156,7 @@ def say(text):
     msg.arg2    = "voice_kal_diphone"
     msg.arg = text
     pubSay.publish(msg)
-    time.sleep(2)
+    time.sleep(2.5)
 
 def transform_point_to_left_arm(x,y,z):
     listener = tf.TransformListener()
@@ -244,65 +244,106 @@ def main():
     # FINAL PROJECT
     # 
     #
+    print("Inicio del robot")
     
     while not rospy.is_shutdown():
 
-	if current_state == "SM_INIT":
-	    print("Inicio del robot") 
-	    executing_task = "False"
+	if current_state == "SM_INIT": 
+	    if (new_task == True):
+                new_task = False
+	        current_state = "SM_OBJECT_DETECTION"
+
+        elif current_state == "SM_OBJECT_DETECTION": 
+	    print ("Reconocimiento de Objeto")
+	    obj,loc = parse_command(recognized_speech)
+	    print(obj)
+	    print(loc)
 	    current_state = "SM_SAY_HELLO"
 
         elif current_state == "SM_SAY_HELLO":
-            say("Executing 1")
+            say("Hello I'm Justina")
 	    executing_task = "False"
             current_state = "SM_MOVE_HEAD"
 
 	elif current_state == "SM_MOVE_HEAD":
-	    say("Executing 2")
-	    move_head(0,-1)
+	    move_head(0,-0.9)
 	    executing_task = "False"
-	    current_state = "SM_INIT_LEFT"
+	    if obj == 'pringles':
+	        current_state = "SM_INIT_LEFT"
+	    else:
+	        current_state = "SM_INIT_RIGHT"
 
 	elif current_state == "SM_INIT_LEFT":
-	    say("Executing 3")
+	    say("Using my left arm")
 	    move_left_arm(-0.5, 0, 0.2, 2.1, 0, 0, 0)
 	    move_left_gripper(0.7)
 	    executing_task = "False"
-	    current_state = "SM_object"
+	    current_state = "SM_object_L"
 
-	elif current_state == "SM_object":
+	elif current_state == "SM_INIT_RIGHT":
+	    say("Using my right arm")
+	    move_right_arm(-0.5, 0, 0.2, 2.1, 0, 0, 0)
+	    move_right_gripper(0.7)
+	    executing_task = "False"
+	    current_state = "SM_object_R"
+
+	elif current_state == "SM_object_L":
 	    x, y, z = 0.0, 0.0, 0.0
 	    x, y, z = find_object("pringles")
 	    xt, yt, zt = transform_point_to_left_arm(x,y,z)
             print(xt,yt,zt)
-	    say("Transformation")
-	    q = ik_left_arm(xt+0.05, yt, zt)
+	    say("Left arm Transformation")
+	    q = ik_left_arm(xt+0.05, yt, zt+0.04)
 	    move_left_arm(q[0], q[1], q[2], q[3], q[4], q[5], q[6])
-	    say("Executing 4")
 	    move_left_gripper(-0.4)
     	    executing_task = "False"
 	    current_state = "SM_BACK"
 
+        elif current_state == "SM_object_R":
+	    x, y, z = 0.0, 0.0, 0.0
+	    x, y, z = find_object("pringlesnt")
+	    xt, yt, zt = transform_point_to_right_arm(x,y,z)
+            print(xt,yt,zt)
+	    say("Right arm Transformation")
+	    q = ik_right_arm(xt+0.09, yt, zt+0.01)
+	    move_right_arm(q[0], q[1], q[2], q[3], q[4], q[5], q[6])
+	    move_right_gripper(-0.4)
+    	    executing_task = "False"
+	    current_state = "SM_BACK"
+
 	elif current_state == "SM_BACK":
-	    say("Executing 6")
 	    move_base(-0.5, 0, 5)
 	    executing_task = "False"
 	    current_state = "SM_avanzar"	
 
 	elif current_state == "SM_avanzar":
-	    go_to_goal_pose(5.5,9)
-	    say("Executing 7")
+	    go_to_goal_pose(loc[0], loc[1])
+	    say("Let's go")
     	    executing_task = "False"
-            if callback_goal_reached(msg) == 'True':
-    	        current_state = "SM_regresar"
-		move_left_gripper(0.4)
-
-	elif current_state == "SM_regresar":
-	    go_to_goal_pose(3.2,5)
-	    say("Executing 7")
-    	    executing_task = "False"
-            if callback_goal_reached(msg) == 'True':
-    	        current_state = "SM_regresar"
+            print(goal_reached)
+            if goal_reached == True: #Booleano, no una cadena
+		say("Goal reached, put your hand")
+		time.sleep(2)
+		move_left_gripper(0.2)
+		move_right_gripper(0.2)
+		time.sleep(2)
+		move_left_gripper(0)
+		move_right_gripper(0)
+		move_left_arm(0,0,0,0,0,0,0)
+		move_right_arm(0,0,0,0,0,0,0)
+		goal_reached = False
+	        go_to_goal_pose(3.45,6.5)
+		print(goal_reached)
+	        while goal_reached == False:
+		    None
+	        say("Turning base")
+	        move_base(0, 2.2, 5)
+	        time.sleep(2)
+                move_base(0.7, 0, 5)
+                current_state == "SM_INIT"
+    	        goal_reached = False
+	        print(goal_reached)
+                current_state = "SM_INIT"
 
         loop.sleep()
 
