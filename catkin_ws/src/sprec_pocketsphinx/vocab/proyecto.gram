@@ -8,7 +8,7 @@ grammar voice_cmd;
 
 public <move> = MOVE FORWARD;
 
-public <move2> = ROBOT | OKEY <verb> [TO THE] [<object>] <location>;
+public <move2> = OKEY | (ROBOT <verb> THE <object> TO THE <location>);
 
 <verb> = TAKE | MOVE;
 

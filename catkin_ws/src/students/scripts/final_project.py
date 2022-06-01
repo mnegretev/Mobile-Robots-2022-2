@@ -253,7 +253,19 @@ def main():
     # 
     #
     orden=""
-    
+    xf=0
+    yf=0
+    zf=0
+    xt=0
+    yt=0
+    zt=0
+    q1=0
+    q2=0
+    q3=0
+    q4=0
+    q5=0
+    q6=0
+    q7=0
     
     while not rospy.is_shutdown():
         if current_state=="SM_INIT":
@@ -263,6 +275,7 @@ def main():
             
         elif current_state=="SM_SAY_HELLO":
             if new_task:
+                say("Hello")
                 requested_object,requested_location=parse_command(recognized_speech)
                 current_state="SM_MOVE_HEAD"
                 new_task=False
@@ -282,29 +295,54 @@ def main():
             find_object("drink")
             say("Found")
             time.sleep(1.0)
-            current_state="SM_TAKE_OBJECT"
+            current_state="SM_TRANSFORM_OBJ"
 
-        elif current_state=="SM_TAKE_OBJECT":
-            print ("Entrando al estado para tomar los objetos")
-            if  requested_object== "pringles":
+        elif current_state=="SM_TRANSFORM_OBJ":
+            if requested_object=="pringles":
+                print ("Entrando al estado para aplicar la trasformada de los objetos")
                 xf,yf,zf=find_object("pringles")
+                print("Transformamos al brazo")
                 xt,yt,zt=transform_point_to_left_arm(xf,yf,zf)
-                print("transformada del brazo",transform_point_to_left_arm)
-                xk,yk,zk=ik_left_arm(xt,yt,zt)
-                q1m,q2m,q3m,q4m,q5m,q6m,q7m=move_left_arm(q[1],q[2],q[3],q[4],q[5],q[6],q[7])
-                print ("coordenadas del brazo",move_left_arm)
+                print("Cinematica inversa")
+                q1m,q2m,q3m,q4m,q5m,q6m,q7m=ik_left_arm(xt,yt,zt)
+                current_state="SM_MOVE_ARM_LEFT"
+            else:
+                print("Transformamos al otro brazo")
+                xt,yt,zt=transform_point_to_right_arm(xf,yf,zf)
+                print("Cinematica inversa para el otro brazo")
+                q1m,q2m,q3m,q4m,q5m,q6m,q7m=ik_right_arm(xt,yt,zt)
+                print ("Cinematica inversa para el otro brazo")
+                current_state="SM_MOVE_ARM_RIGHT"
+
+        elif current_state =="SM_MOVE_ARM_LEFT":
+            q1,q2,q3,q4,q5,q6,q7=ik_left_arm(0.20,0.06,-0.25)
+            move_left_arm(q1,q2,q3,q4,q5,q6,q7)
+            move_left_gripper(0.6)
+            move_left_arm(q1m,q2m,q3m,q4m,q5m,q6m,q7m)
+            move_left_gripper(-0.3)
+            q1,q2,q3,q4,q5,q6,q7=ik_left_arm(0.20,0.06,-0.25)
+            move_left_arm(q1,q2,q3,q4,q5,q6,q7)
             current_state="SM_MOVE_POSE"
-            
+
+        elif current_state =="SM_MOVE_ARM_RIGHT":
+            q1,q2,q3,q4,q5,q6,q7=ik_right_arm(xt,yt,zt)
+            move_right_arm(q1,q2,q3,q4,q5,q6,q7)
+            move_right_gripper(0.6)
+            move_right_arm(q1m,q2m,q3m,q4m,q5m,q6m,q7m)
+            move_right_gripper(-0.3)
+            q1,q2,q3,q4,q5,q6,q7=ik_right_arm(xt,yt,zt)
+            move_right_arm(q1,q2,q3,q4,q5,q6,q7)
+            current_state="SM_MOVE_POSE"
+                           
         elif current_state=="SM_MOVE_POSE":
             move_head(0.0,0.0)
-            if "ROBOT MOVE TO THE TABLE" == recognized_speech:
-                go_to_goal_pose(3.4,9)
-            elif "ROBOT MOVE TO THE KITCHEN" == recognized_speech:
-                go_to_goal_pose(6,6.2)
-            current_state="SM_MOVE_HOME"
+            move_base(-1,0,2)
+            current_state="SM_MOVE_KITCHEN"
             
-        #elif current_state=="SM_MOVE_HOME":
-            #go_to_goal_pose()
+        elif current_state=="SM_MOVE_KITCHEN":
+            go_to_goal_pose(6,6.2)
+            current_state="SM_MOVE_TABLE"
+            
 
             executing_task=False
                         
