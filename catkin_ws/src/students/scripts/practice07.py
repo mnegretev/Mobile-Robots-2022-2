@@ -37,27 +37,38 @@ def segment_by_color(img_bgr, points, obj_name):
     #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
     #   the pixel in the center of the image.
     #
-    lower_limit = [0]
-    upper_limit = [0]
-        if obj_name == 'pringles': 
-    	lower_limit = [25, 50, 50]     # Minimum value of hue, saturation and value of pringles.
-        upper_limit  = [35, 255, 255]  # Maximum value of hue, saturation and value of pringles.
-    else: 
-        lower_limit= [10,200, 50]     # Minimum value of hue, saturation and value of soda.
-	upper_limit  = [20, 255, 255]  # Maximum value of hue, saturation and value of soda.
+
+    upperLimit = [0]
+    lowerLimit = [0]
+
+    if obj_name == "pringles":
+        upperLimit = [35, 255, 255]
+        lowerLimit = [25, 50, 50]
+    else:
+        upperLimit = [20, 255, 255]
+        lowerLimit = [10, 200, 50]
+   
     img_hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
-    img_bin = cv2.inRange(img_hsv, lower_limit, upper_limit)
-    idx = cv2.findNonZero(img_bin)
-    [img_x, img_y, a, b] = cv2.mean(idx)
-    [x,y,z] = [0,0,0]
-    counter = 0
-    for [[c, r]] in idx:
-        xt, yt, zt = points[r,c][0], points[r,c][1], points[r,c][2]
-        if math.isnan(xt) or math.isnan(yt) or math.isnan(zt):
-            continue
-        [x,y,z,counter] = [x+xt, y+yt, z+zt, counter+1]
-    [x,y,z] = [x/counter, y/counter, z/counter] if counter > 0 else [0,0,0]
-    return [img_x, img_y, x,y,z]
+    img_bin = cv2.inRange(img_hsv, numpy.array(lowerLimit), numpy.array(upperLimit))
+    nonZero = cv2.findNonZero(img_bin)
+    meanCentroide = cv2.mean(nonZero)
+
+    x, y, z = 0, 0, 0
+
+    for i in nonZero:
+        [[c,r]] = i
+        if math.isnan(points[r,c][0]) or math.isnan(points[r,c][1]) or math.isnan(points[r,c][2]):
+            pass
+        else:
+            x = x + points[r,c][0]
+            y = y + points[r,c][1]
+            z = z + points[r,c][2]
+
+    x = x/len(nonZero)
+    y = y/len(nonZero)
+    z = z/len(nonZero)
+
+    return [meanCentroide[0], meanCentroide[1], x, y, z]
    
 
 def callback_find_object(req):
