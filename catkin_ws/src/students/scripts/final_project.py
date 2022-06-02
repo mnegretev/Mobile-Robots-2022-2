@@ -117,7 +117,7 @@ def move_head(pan, tilt):
     msg.data.append(pan)
     msg.data.append(tilt)
     pubHdGoalPose.publish(msg)
-    time.sleep(1.0)
+    time.sleep(5.0)
 
 #
 # This function sends a linear and angular speed to the mobile base to perform
@@ -308,7 +308,8 @@ def main():
                 current_state="SM_MOVE_ARM_LEFT"
             else:
                 print("Transformamos al otro brazo")
-                xt,yt,zt=transform_point_to_right_arm(xf,yf,zf)
+                xfd,yfd,zfd=find_object("drink")
+                xt,yt,zt=transform_point_to_right_arm(xfd,yfd,zfd)
                 print("Cinematica inversa para el otro brazo")
                 q1m,q2m,q3m,q4m,q5m,q6m,q7m=ik_right_arm(xt,yt,zt)
                 print ("Cinematica inversa para el otro brazo")
@@ -325,24 +326,32 @@ def main():
             current_state="SM_MOVE_POSE"
 
         elif current_state =="SM_MOVE_ARM_RIGHT":
-            q1,q2,q3,q4,q5,q6,q7=ik_right_arm(xt,yt,zt)
+            q1,q2,q3,q4,q5,q6,q7=ik_right_arm(0.20,0.06,-0.25)
             move_right_arm(q1,q2,q3,q4,q5,q6,q7)
             move_right_gripper(0.6)
             move_right_arm(q1m,q2m,q3m,q4m,q5m,q6m,q7m)
             move_right_gripper(-0.3)
-            q1,q2,q3,q4,q5,q6,q7=ik_right_arm(xt,yt,zt)
+            q1,q2,q3,q4,q5,q6,q7=ik_right_arm(0.20,0.06,-0.25)
             move_right_arm(q1,q2,q3,q4,q5,q6,q7)
-            current_state="SM_MOVE_POSE"
+            current_state="SM_MOVE_POSE_DR"
                            
         elif current_state=="SM_MOVE_POSE":
             move_head(0.0,0.0)
             move_base(-1,0,2)
             current_state="SM_MOVE_KITCHEN"
+
+        elif current_state=="SM_MOVE_POSE_DR":
+            move_head(0.0,0.0)
+            move_base(-1,0,2)
+            current_state=="SM_MOVE_TABLE"
             
         elif current_state=="SM_MOVE_KITCHEN":
             go_to_goal_pose(6,6.2)
-            current_state="SM_MOVE_TABLE"
-            
+            current_state="SM_MOVE_HOME"
+
+        elif current_state=="SM_MOVE_TABLE":
+            go_to_goal_pose(3.4,9)
+            current_state="SM_MOVE_HOME"
 
             executing_task=False
                         
